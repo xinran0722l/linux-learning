@@ -69,7 +69,7 @@ git checkout		#切换分支
 
 ##	两地开发
 -	在公司开发
-```
+```bash
 1.切换到dev分支，进行开发(参考上述工作流)
 	git checkout dev
 2.把 master分支 合并到 dev (仅一次)
@@ -123,7 +123,7 @@ git merge origin/dev
 
 ## rebase(变基) 
 -	简洁提交记录
--	注意：合并时不要合并已经pubash到远程的
+-	注意：合并时不要合并已经push到远程的
 
 - git log 的图形记录展示
 ```bash
@@ -156,6 +156,7 @@ git tag -a v1 -m "第一版"
 git pubash orign --tags		#提交至远程仓库(github的分支下拉菜单上也会显示tag)
 ```
 -	开发前的步骤
+
 ```bash
 git branch -b dev		#	创建dev分支并进行切换
 git pubash origin dev		#	将本地dev分支推送到远程(github分支下拉菜单显示2个分支，tag还是同一个)
@@ -178,7 +179,9 @@ git pubash origin dev		#	将本地dev分支推送到远程(github分支下拉菜
 
 
 ##	其他
+
 - 配置文件
+
 ```bash
 #	当前项目配置文件: 当前项目/.git/config
 git config --local user.name 'test'
@@ -199,6 +202,7 @@ git remote add origin url		#	默认添加在本地配置文件中(相当于--loc
 
 
 ## git忽略文件	.gitignore
+
 ```bash
 test/		#忽略test/文件夹
 *.h			#忽略所有.h结尾的文件
@@ -207,6 +211,7 @@ test/		#忽略test/文件夹
 
 
 ## 任务管理
+
 ```bash
 issues: 文档，提问，bug汇总等		#可以给相应的问题打标签(例如bug,doc...)
 wiki: 项目文档
