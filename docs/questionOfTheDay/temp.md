@@ -14,6 +14,16 @@
 [结语](#epilogue)
 # <span id='current-topic'>今日题</span>
 ## <span id='c-topic'>题目</span>
+
+```JavaScript
+console.log(this.name)
+```
+
+```js
+console.log(this.name)
+```
+
+
 ```
 【
 

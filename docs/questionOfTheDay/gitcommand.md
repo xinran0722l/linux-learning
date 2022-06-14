@@ -4,7 +4,7 @@
 
 - 进入要管理的文件夹
 -	执行初始化命令
-```babash
+```bash
 git init
 ```
 - 管理目录下的文件状态
@@ -28,12 +28,12 @@ git log
 
 ##	扩展功能
 -	回滚至之前版本
-```
+```bash
 git log
 git reset --hard 版本号
 ```
 -	回滚至之后的版本
-```
+```bash
 git reflog
 git reset --hard 版本号
 ```
