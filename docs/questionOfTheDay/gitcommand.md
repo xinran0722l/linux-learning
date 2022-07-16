@@ -56,6 +56,9 @@ git branch -d 分支名称		#删除分支
 
 ## 远程仓库
 ```bash
+
+git remote -v   # 查看添加的远程仓库
+
 git remote add origin git@github.com:Spiderwe/comments.git      #origin是远程源的名字
 
 git push -u origin 分支名称		#向远程推送代码
