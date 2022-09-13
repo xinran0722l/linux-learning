@@ -3,3 +3,5 @@
 - [每日一题](/questionOfTheDay/temp.md)
 - [解答](/answer/)
 - [python_basic](/pyMD/basic.md)
+- [python标准库](/pyMD/python_standard_library.md)
+- [python文件](/pyMD/file_operate.md)
