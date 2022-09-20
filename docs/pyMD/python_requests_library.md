@@ -19,7 +19,6 @@
 | requests.patch() | 向HTML网页提交局部修改请求，对应HTTP的PATCH | 
 | requests.delete() | 向HTML网页提交删除请求，对应HTTP的DELETE | 
 
-
 ```py
 requests.get( url, params=None, **kwargs )
 url: 拟获取页面的url链接
