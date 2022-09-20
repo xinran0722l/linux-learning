@@ -6,4 +6,4 @@
 - [python标准库](/pyMD/python_standard_library.md)
 - [python文件](/pyMD/file_operate.md)
 - [python爬虫](/pyMD/python_requests_library.md)
-- [python解析爬虫](/pyMD/python_beautifulSoup_library.md)
+- [python解析](/pyMD/python_beautifulsoup_library.md)
