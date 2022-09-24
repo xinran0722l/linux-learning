@@ -35,19 +35,19 @@
 | re.finditer() | 搜索字符串，返回一个匹配结果的迭代类型，每个迭代元素是match对象 |
 | re.sub() | 在一个字符串中替换所有匹配正则表达式的字串，返回替换后的字符串 |
 
-- re.search(pattern, string, flags=0)
+- ```re.search(pattern, string, flags=0)```
   - 在一个字符串中搜索匹配正则的第一个位置，返回match对象
   - pattern: 正则的字符串或原生字符串表示
   - string: 待匹配字符串
   - flags: 正则使用时的控制标记
-- re.match(pattern, string, flags=0)
+- ```re.match(pattern, string, flags=0)```
   - 从一个字符串的开始位置起匹配正则，返回match对象
   - re.match的参数同re.search
-- re.findall(pattern, string, flags=0)
-- re.split(pattern, string, maxsplit=0, flags=0)
+- ```re.findall(pattern, string, flags=0)```
+- ```re.split(pattern, string, maxsplit=0, flags=0)```
   - maxsplit: 最大分割数，剩余部分作为最后一个元素输出
-- re.finditer(pattern, string, flags=0)
-- re.sub(pattern, repl, string, count=0, flags=0)
+- ```re.finditer(pattern, string, flags=0)```
+- ```re.sub(pattern, repl, string, count=0, flags=0)```
   - repl: 替换匹配字符串的字符串
   - count: 匹配的最大替换次数
 - ```re.compile(pattern, flags=0)```
@@ -68,6 +68,8 @@
 | .endpos | 正则表达式搜索文本的结束位置 |
 
 ## Match对象的放法
+- match对象是一次正则匹配的结果
+- match对象包含了很多匹配的相关信息
 | 放法 | 说明 |
 | :---: | :---: |
 | .group(0) | 获得匹配后的字符串 |
@@ -75,3 +77,12 @@
 | .end() | 匹配字符串在原始字符串的结束位置 |
 | .span() | 返回(.start(), .end()) |
 
+## 贪婪匹配
+- Re库默认采用贪婪匹配，即输出匹配最长的字串
+下面给出最小匹配操作符
+| 操作符 | 说明 |
+| :---: | :---: |
+| *? | 前一个字符0次或无限次扩展，最小匹配 |
+| +? | 前一个字符1次或无限次扩展，最小匹配 |
+| ?? | 前一个字符0次或1次扩展，最小匹配 |
+| {m,n}? | 前一个字符m次至n次(含n)，最小匹配 |
