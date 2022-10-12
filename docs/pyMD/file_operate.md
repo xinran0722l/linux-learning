@@ -35,6 +35,8 @@
 | :---: | :---: |
 | f.write(s) | 向文件写入一个字符串或字节流 | 
 | f.writelines(lines) | 将一个元素全为字符串的列表写入文件(直接拼接字符串) | 
+| f.tell(self, *args, **kwargs) | 返回当前文件操作的光标位置 | 
+| f.flush(self, *args, **kwargs) | 把文件从内存buffer里强制刷新到硬盘 | 
 | f.seek(offset) | 改变当前文件操作指针的位置，offset含义如下 | 
 
 - offset的定义：0 -> 文件开头；1 -> 当前位置；2 -> 文件结尾
@@ -47,3 +49,28 @@
 - 如果某个元素缺失，逗号仍要保留
 - 二位数据的表头可以作为数据存储，也可以另行存储
 - 逗号为英文半角，逗号与数据之间无需空格
+
+#### 以命令行实现对文件的全局替换
+- 执行 ```python  replace.py  oldStr newStr filename```
+
+```py
+import sys
+
+# sys.argv 返回命令行参数
+oldStr = sys.argv[1]
+newStr = sys.argv[2]
+file_name = sys.argv[3]
+
+f = open(file_name, "r+")   # open file
+data = f.read() # read all content
+str_count = data.count(oldStr)  # count all oldStr
+
+new_data = data.replace(oldStr,newStr)
+
+f.seek(0)   # 将文件指针指向行首
+f.truncate()    # 清空全部旧内容
+f.write(new_data)   # 写入新内容
+f.close()   # 关闭文件
+
+print(f"找到{oldStr}共{str_count}处，以全部替换为{newStr}...")
+```

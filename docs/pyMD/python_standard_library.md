@@ -70,3 +70,27 @@ time.perf_counter()
 
 # time.sleep(s) # s 是休眠的时间，单位是秒，可以是浮点数
 ```
+
+## string library
+```py
+import string
+
+>>> string.ascii_letters	# 打印所有字母
+'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+>>> string.ascii_uppercase	# 打印大写字母
+'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+>>> string.ascii_lowercase	# 打印小写字母
+'abcdefghijklmnopqrstuvwxyz'
+>>> string.punctuation		# 打印所有特殊字符
+'!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+>>> string.digits			# 打印数字
+'0123456789'
+
+```
+
+## sys
+
+```__file__``` 返回当前脚本的绝对路径
+
+- ```sys.path``` 模块查找路径，返回一个列表
+- ```sys.argv``` 以list返回命令行调用脚本时添加的参数,list[0]为文件名

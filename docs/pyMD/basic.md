@@ -98,7 +98,7 @@ str.split(sep=None) # 返回一个列表，"A,B,C".split(",") -> ["A","B","C"]
 str.count(sub) # 返回子串sub在str中出现的次数 “Hello”.count("l") -> 2
 str.replace(old,new)  # 返回str的副本，所有old字串被替换为new，"Hello".replace("e","@") -> "H@llo"
 str.center(width [, fillchar])  # str 根据 width 居中，“Hello”.center(10,"=") -> "==Hello==="
-str.strip(chars)    # 从str两端去掉chars，"o Helloo".strip(" o") -> "Hell"
+str.strip(chars)    # 从str两端去掉chars，"o Helloo".strip(" o") -> "Hell"，不传参，默认去除空白符
 str.join(iter)    # ",".join("Hello") -> "H,e,l,l,o"
 ```
 
@@ -203,6 +203,18 @@ print( a, b, c )
 725760 10 5
 ```
 
+## 指定参数(关键参数)
+- 一般给函数传参要按照顺序，不按顺序就需要指定参数
+  * 但是定义时，关键参数必须放在位置参数之后
+
+```py
+def sayHi(name,age,like="Python"):
+```
+调用时可以
+```py
+sayHi("Jack",like="C++",age=16)
+```
+
 ## lambda function
 - lambda 函数是一种匿名函数，使用关键字lambda定义
 - 函数名是返回结果， lambda函数用于定义简单的，能够在一行内表示的函数
@@ -214,7 +226,11 @@ print( a, b, c )
 ```py
 def fn( a , *argc ):
   <函数体>
-# 其中 *argc 表示可变参数
+# 其中 *argc 表示可变参数,表现为元组
+
+def fn(**kwargs):
+  <函数体>
+# **kwargs 表示为一个dict(字典)
 ```
 
 
