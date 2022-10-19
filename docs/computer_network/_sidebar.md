@@ -1,3 +1,4 @@
 - [首页](../README.md)
 - [网络基础](/computer_network/basic.md)
 - [应用层](/computer_network/application_layer.md)
+- [DNS](/computer_network/application_layer2_dns.md)
