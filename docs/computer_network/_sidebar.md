@@ -4,3 +4,5 @@
 - [DNS](/computer_network/application_layer2_dns.md)
 - [P2P](/computer_network/application_layer_p2p.md)
 - [CDN](/computer_network/application_layer_cdn.md)
+- [Socket](/computer_network/socket.md)
+- [应用层小结](/computer_network/application_layer_end.md)
