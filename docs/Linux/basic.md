@@ -11,8 +11,8 @@
 9. 跟系统核心有关的文件的帮助文档
 
 ## 目录结构
-- /bin 可执行文件
-- /boot 系统核心文件和开机所需文件
+- /bin 二进制可执行文件
+- /boot 系统核心文件和开机所需文件(内核)
 - /dev 系统设备相关文件
 - /etc 系统配置文件
 - /home 除根用户外其他用户的家目录
@@ -22,7 +22,22 @@
 - /srv 服务启动之后需要访问的数据(/srv/www下有Web服务器的数据)
 - /tmp 程序临时存放文件的目录
 - /opt 第三方软件建议安装目录
+- /var 存放经常变化的文件
+- /usr 存放安装程序(软件默认目录)
+- /mnt 文件挂载目录(U盘，光驱)
+- /proc 硬件信息
 - /media 移动设备相关文件(光驱，优盘)
+
+#### 文件存放
+- /etc
+  * /etc/motd: 配置用户登录系统后显示提示内容
+  * etc/os-release: 声明OS版本号和名称信息的文件
+  * /etc/systcl.conf: Linux内核参数设置文件
+- /proc
+  * /proc/meminfo: 系统内存信息
+  * /proc/cpuinfo 关于处理器的信息，如类型，厂家，型号,性能等
+  * /proc/loadavg: 系统负载信息，uptime的结果
+  * /proc/mounts：已加载的文件系统的列表
 
 ## 文件属性
 - ```ll```命令下，首列字符的含义
@@ -34,8 +49,17 @@
   - ```-```普通文件
 
 ## 常用命令
-- chmod 改变文件权限
-- chown 改变所属用户组
+- ```chmod``` 改变文件权限
+- ```chown``` 改变所属用户组
+- ```whoami``` 显示当前登录的用户
+- ```hostname``` 当前机器的主机名
+- ```echo $PATH``` 打印当前环境变量，以冒号分割
+- ```which``` 定位命令来自哪个文件
+  * 例如，```which apt``` 返回 ```/usr/bin/apt```
+- 非交互式写入文件
+  * ```cat >> hello.py << EOF```
+  * ```> print("Hello python")```
+  * ```> EOF``` 文件写入
 
 ## 通配符
 - ```*```表示任意长度字符串,(包含0长度)
@@ -55,17 +79,22 @@ ls -l /bin/??sh # 查看/bin下以sh结尾同时长度为4的文件
 tar -cf [打包文件名] [要打包的文件/列表]
 # c 表示创建打包文件
 # f 表示指定打包文件名
+
 tar -tf [已打包的文件]  # 列出其中的文件名
+
 tar -f [已打包的文件]  --delete hello.c  # 删除hello.c
+
 tar -f pkg1.tar -A pkg2.tar # 将pkg2.tar的内容合并到pkg1.tar,不会改变pkg2.tar
+
 tar -xf pkg1.tar  # 解包至当前目录
 tar -xf pkg1.tar -C ~/packge # 解包至指定目录
 ```
 
-- gzip压缩
+- ```gzip```压缩
 ```bash
 gzip pkg1.tar # 压缩文件
 # pkg1.tar.gz
+
 gzip -d pkg1.tar.gz #解压
 ```
 - ```tar -[1-9] filename```其中数字越大，压缩文件越大，更省时
@@ -73,7 +102,8 @@ gzip -d pkg1.tar.gz #解压
 - ```tar -czf```综合了打包和压缩
 ```bash
 tar -czf newfilename [需要打包并被压缩的文件]
-# 解压
+
+#解压
 tar -xzf newfilename
 ```
 
@@ -113,3 +143,20 @@ ln -s [链接指向的文件] [文件名]
 - locate find
   * ```locate [查找路径] [文件名的关键字]```,此命令wsl中不存在
   * ```find [查找范围] [查找条件] [动作]```
+  * ```find path -option [ -print] [ -exec -ok command] {} \;```
+
+## 重定向和管道
+- ```>```和```>>```用来输出重定向
+```bash
+ls -l > stdout.txt  # 若stdout.txt不存在则创建，若已存在则覆盖其内容
+ls -l >> hello.c  # 在hello.c最后追加上ls -l的输出
+```
+- ```<```和```<<```用来输入重定向
+- ```tr [准备要替换的字符] [要替换成的字符]```
+- ```sort -k [关键字字段序号] [要排序的文本]```
+
+- 管道不会传递错误输出
+- ```grep```一个文本搜索工具，可以配合正则
+  * ```geep [关键字] [目标文件]```
+- ```cut```文本切割
+- ```wc```文本统计
