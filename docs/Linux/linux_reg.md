@@ -26,7 +26,9 @@
 | [^abc] | 取反 |
 
 ### 扩展正则ERE
+
 扩展正则必须用```grep -E```才能生效
+
 | 符号 | 描述 | 
 | :---: | :---: |
 | + | 匹配前一个字符1次或多次 | 
@@ -224,3 +226,550 @@ $ sed "a ------------" sed_test.txt
     11  My website is http://google.com.
     12  ------------
 ```
+- 通过```ifconfig eth0来获得ip```地址
+```bash
+$ ifconfig eth0 #输出如下
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 172.26.68.96  netmask 255.255.240.0  broadcast 172.26.79.255
+        inet6 fe80::215:5dff:fec2:4ebc  prefixlen 64  scopeid 0x20<link>
+        ether 00:15:5d:c2:4e:bc  txqueuelen 1000  (Ethernet)
+        RX packets 35  bytes 6732 (6.7 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 12  bytes 936 (936.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+```bash
+#先打印处ip所在的第2行
+$ ifconfig eth0 | sed "2p" -n
+        inet 172.26.68.96  netmask 255.255.240.0  broadcast 172.26.79.255
+
+#去除ip之前的内容(替换为空)
+$ ifconfig eth0 | sed "2p" -n | sed "s/^.*inet//g"
+ 172.26.68.96  netmask 255.255.240.0  broadcast 172.26.79.255
+
+#去掉ip之后的内容
+$ ifconfig eth0 | sed "2p" -n | sed "s/^.*inet//g" | sed "s/net.*$//g"
+ 172.26.68.96
+```
+
+- 上述操作用到3次管道，下面使用```sed -e```参数演示
+```bash
+#先测试能否正常输出去掉ip前的内容
+$ ifconfig eth0 | sed "2s/^.*inet//p" -n
+ 172.26.68.96  netmask 255.255.240.0  broadcast 172.26.79.255
+
+
+#上条命令已经去除ip之前的内容
+$ ifconfig eth0 | sed -e "2s/^.*inet//"  -e "2s/net.*$//p" -n
+ 172.26.68.96
+```
+
+## awk基础
+
+awk语法
+```bash
+awk [options] 'pattern[action]' file
+
+awk 参数	'动作条件' 文件
+
+
+awk options pattern {action} file
+	可选	模式		动作
+```
+
+- Action是动作，awk擅长文本格式化，且输出格式化后的结果，最常用的动作是print和printf
+
+#### awk内置变量
+
+| 内置变量| 描述 | 
+| :---: | :---: |
+| $N | 指定分隔符后，当前记录的第n个字段 | 
+| $0 | 完整的输入记录 |
+| FS | 字段分隔符，默认是空格 |
+| OFS | 输出字段分隔符，默认是空白字符 |
+| RS | 输入记录分隔符(输入换行符)，指定输入时的换行符 |
+| ORS | 输出记录分隔符(输出换行符)，输出时用指定符号代替换行符 |
+| NF(Number of Fields) | 分割后，当前行一共有多少字段(即当前行被分割成了几列)，字段数量 |
+| NR(Number of Records) | 当前记录数，步数(行号) |
+| FNR | FNR:个文件分别计数的行号(处理多个文件时，此参数可以分别显示各文件的行号) |
+| FILENAME | 当前文件名 |
+| ARGC | 命令行参数的个数 |
+| ARGV | 数组，保存的时命令行所给定的参数 |
+
+- ```awk外层必须用单引号，内层双引号```
+- 内置变量($1,$2)不加双引号，否则会识别为文本
+- awk的内置变量```NR，NF不加$```
+
+
+```bash
+#现有文本awk_test.txt
+$ cat awk_test.txt
+pyyu1 pyyu2 pyyu3 pyyu4 pyyu5
+pyyu6 pyyu7 pyyu8 pyyu9 pyyu10
+pyyu11 pyyu12 pyyu13 pyyu14 pyyu15
+pyyu16 pyyu17 pyyu18 pyyu19 pyyu20
+pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+pyyu31 pyyu32 pyyu33 pyyu34 pyyu35
+pyyu36 pyyu37 pyyu38 pyyu39 pyyu40
+pyyu41 pyyu42 pyyu43 pyyu44 pyyu45
+pyyu46 pyyu47 pyyu48 pyyu49 pyyu50
+```
+
+```bash
+#输出第一列内容
+$ awk '{print $1}' awk_test.txt
+pyyu1
+pyyu6
+pyyu11
+pyyu16
+pyyu21
+pyyu26
+pyyu31
+pyyu36
+pyyu41
+pyyu46
+
+
+#输出所有内容
+$ awk '{print $0}' awk_test.txt
+pyyu1 pyyu2 pyyu3 pyyu4 pyyu5
+pyyu6 pyyu7 pyyu8 pyyu9 pyyu10
+pyyu11 pyyu12 pyyu13 pyyu14 pyyu15
+pyyu16 pyyu17 pyyu18 pyyu19 pyyu20
+pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+pyyu31 pyyu32 pyyu33 pyyu34 pyyu35
+pyyu36 pyyu37 pyyu38 pyyu39 pyyu40
+pyyu41 pyyu42 pyyu43 pyyu44 pyyu45
+pyyu46 pyyu47 pyyu48 pyyu49 pyyu50
+
+#$2同理输出第二列的内容
+$ awk '{print $2}' awk_test.txt
+pyyu2
+pyyu7
+pyyu12
+pyyu17
+pyyu22
+pyyu27
+pyyu32
+pyyu37
+pyyu42
+pyyu47
+
+```
+- awk ‘{print $2}’,没有使用参数和模式，$2表示文本第二列的喜喜
+- ```awk默认以空格为分隔符```，且多个空格也识别为一个空格作为分隔符
+- awk是按行处理文件，一行处理完毕，处理下一行，根据用户指定的分隔符区工作，没有指定则默认空格
+- 指定了分隔符后，awk把每一行切割后的数据对应到内置变量
+	* $0代表整行
+	* $NF表示当前分割后的最后一列
+	* 倒数第二列可以写为$(NF-1)
+
+
+```bash
+#取出多列
+$ awk '{print $1,$5,$3}' awk_test.txt
+pyyu1 pyyu5 pyyu3
+pyyu6 pyyu10 pyyu8
+pyyu11 pyyu15 pyyu13
+pyyu16 pyyu20 pyyu18
+pyyu21 pyyu25 pyyu23
+pyyu26 pyyu30 pyyu28
+pyyu31 pyyu35 pyyu33
+pyyu36 pyyu40 pyyu38
+pyyu41 pyyu45 pyyu43
+pyyu46 pyyu50 pyyu48
+
+
+#自定义输出
+$ awk '{print "第一列："$1,"第四列："$4}' awk_test.txt
+第一列：pyyu1 第四列：pyyu4
+第一列：pyyu6 第四列：pyyu9
+第一列：pyyu11 第四列：pyyu14
+第一列：pyyu16 第四列：pyyu19
+第一列：pyyu21 第四列：pyyu24
+第一列：pyyu26 第四列：pyyu29
+第一列：pyyu31 第四列：pyyu34
+第一列：pyyu36 第四列：pyyu39
+第一列：pyyu41 第四列：pyyu44
+第一列：pyyu46 第四列：pyyu49
+
+
+$ awk '{print "每一行的内容是："$0}' awk_test.txt
+每一行的内容是：pyyu1 pyyu2 pyyu3 pyyu4 pyyu5
+每一行的内容是：pyyu6 pyyu7 pyyu8 pyyu9 pyyu10
+每一行的内容是：pyyu11 pyyu12 pyyu13 pyyu14 pyyu15
+每一行的内容是：pyyu16 pyyu17 pyyu18 pyyu19 pyyu20
+每一行的内容是：pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+每一行的内容是：pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+每一行的内容是：pyyu31 pyyu32 pyyu33 pyyu34 pyyu35
+每一行的内容是：pyyu36 pyyu37 pyyu38 pyyu39 pyyu40
+每一行的内容是：pyyu41 pyyu42 pyyu43 pyyu44 pyyu45
+每一行的内容是：pyyu46 pyyu47 pyyu48 pyyu49 pyyu50
+```
+#### awk参数
+
+| 参数| 描述 | 
+| :---: | :---: |
+| -F | 指定分隔符 | 
+| -v | 定义或修改一个awk内部变量 |
+| -f | 从脚本文件中读取awk命令 |
+
+#### awk案例
+```bash
+awk '模式{动作}' 文件
+
+#要操作的文本如下
+$ cat -n awk_test.txt
+     1  pyyu1 pyyu2 pyyu3 pyyu4 pyyu5
+     2  pyyu6 pyyu7 pyyu8 pyyu9 pyyu10
+     3  pyyu11 pyyu12 pyyu13 pyyu14 pyyu15
+     4  pyyu16 pyyu17 pyyu18 pyyu19 pyyu20
+     5  pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+     6  pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+     7  pyyu31 pyyu32 pyyu33 pyyu34 pyyu35
+     8  pyyu36 pyyu37 pyyu38 pyyu39 pyyu40
+     9  pyyu41 pyyu42 pyyu43 pyyu44 pyyu45
+    10  pyyu46 pyyu47 pyyu48 pyyu49 pyyu50
+
+$ awk 'NR==5{print $0}' awk_test.txt
+pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+
+
+#输出2行
+$ awk 'NR==5,NR==6{print $0}' awk_test.txt
+pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+
+#输出连续的多行
+$ awk 'NR==2,NR==6{print $0}' awk_test.txt
+pyyu6 pyyu7 pyyu8 pyyu9 pyyu10
+pyyu11 pyyu12 pyyu13 pyyu14 pyyu15
+pyyu16 pyyu17 pyyu18 pyyu19 pyyu20
+pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+
+```
+
+```bash
+
+#给awk的输出添加行号
+$ awk '{print NR,$0}' awk_test.txt
+1 pyyu1 pyyu2 pyyu3 pyyu4 pyyu5
+2 pyyu6 pyyu7 pyyu8 pyyu9 pyyu10
+3 pyyu11 pyyu12 pyyu13 pyyu14 pyyu15
+4 pyyu16 pyyu17 pyyu18 pyyu19 pyyu20
+5 pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+6 pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+7 pyyu31 pyyu32 pyyu33 pyyu34 pyyu35
+8 pyyu36 pyyu37 pyyu38 pyyu39 pyyu40
+9 pyyu41 pyyu42 pyyu43 pyyu44 pyyu45
+10 pyyu46 pyyu47 pyyu48 pyyu49 pyyu50
+
+
+#输出第3行到第6行的内容，并添加行号
+h$ awk 'NR==3,NR==6{print NR,$0}' awk_test.txt
+3 pyyu11 pyyu12 pyyu13 pyyu14 pyyu15
+4 pyyu16 pyyu17 pyyu18 pyyu19 pyyu20
+5 pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+6 pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+
+#取出第一列，倒数第3列和最后一列的值并显示行号
+$ awk '{print NR, $1,$(NF-2),$NF}' awk_test.txt
+1 pyyu1 pyyu3 pyyu5
+2 pyyu6 pyyu8 pyyu10
+3 pyyu11 pyyu13 pyyu15
+4 pyyu16 pyyu18 pyyu20
+5 pyyu21 pyyu23 pyyu25
+6 pyyu26 pyyu28 pyyu30
+7 pyyu31 pyyu33 pyyu35
+8 pyyu36 pyyu38 pyyu40
+9 pyyu41 pyyu43 pyyu45
+10 pyyu46 pyyu48 pyyu50
+
+
+#通过awk取出ifconfig eth0中的ip地址
+#首先取出ip所在的第二行
+$ ifconfig eth0 | awk 'NR==2{print $0}'
+        inet 172.26.68.96  netmask 255.255.240.0  broadcast 172.26.79.255
+
+#再根据字段直接取出ip地址
+$ ifconfig eth0 | awk 'NR==2{print $2}'
+172.26.68.96
+
+
+```
+
+#### awk分隔符
+- awk的分隔符有两种
+	* 输入分隔符：awk默认是空格，空白字符(Field Separator)，变量名是FS
+	* 输出分隔符：Output Field Separator,简称OFS
+
+- awk逐行处理文本时，以FS为准，把文本切分为多个片段，默认是空格
+- 当处理特殊文件，没有空格时，可以自由指定分隔符
+
+
+```bash
+#现有文本awk_pwd.txt
+$ cat -n awk_pwd.txt
+     1  root:x:0:0:root:/root:/bin/bash
+     2  daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+     3  bin:x:2:2:bin:/bin:/usr/sbin/nologin
+     4  sys:x:3:3:sys:/dev:/usr/sbin/nologin
+     5  sync:x:4:65534:sync:/bin:/bin/sync
+     6  games:x:5:60:games:/usr/games:/usr/sbin/nologin
+     7  man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+     8  lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+     9  mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+    10  news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+
+
+#以冒号分割，并输出第一列
+$ awk -F ":" '{print $1}' awk_pwd.txt
+root
+daemon
+bin
+sys
+sync
+games
+man
+lp
+mail
+news
+
+
+#取出第一列和最后一列
+$ awk -F ":" '{print $1,$NF}' awk_pwd.txt
+root /bin/bash
+daemon /usr/sbin/nologin
+bin /usr/sbin/nologin
+sys /usr/sbin/nologin
+sync /bin/sync
+games /usr/sbin/nologin
+man /usr/sbin/nologin
+lp /usr/sbin/nologin
+mail /usr/sbin/nologin
+news /usr/sbin/nologin
+
+
+#以变量形式取出第一列和最后一列
+$ awk -v FS=":" '{print $1,$NF}' awk_pwd.txt
+root /bin/bash
+daemon /usr/sbin/nologin
+bin /usr/sbin/nologin
+sys /usr/sbin/nologin
+sync /bin/sync
+games /usr/sbin/nologin
+man /usr/sbin/nologin
+lp /usr/sbin/nologin
+mail /usr/sbin/nologin
+news /usr/sbin/nologin
+
+
+#输出awk_pwd.txt中第一列和最后一列的信息，中间使用4个-来分隔
+$ awk -F ":" -v OFS="----" '{print $1,$NF}' awk_pwd.txt
+root----/bin/bash
+daemon----/usr/sbin/nologin
+bin----/usr/sbin/nologin
+sys----/usr/sbin/nologin
+sync----/bin/sync
+games----/usr/sbin/nologin
+man----/usr/sbin/nologin
+lp----/usr/sbin/nologin
+mail----/usr/sbin/nologin
+news----/usr/sbin/nologin
+
+#以制表符输出第一列和最后一列
+$ awk -F ":" -v OFS="\t" '{print $1,$NF}' awk_pwd.txt
+root    /bin/bash
+daemon  /usr/sbin/nologin
+bin     /usr/sbin/nologin
+sys     /usr/sbin/nologin
+sync    /bin/sync
+games   /usr/sbin/nologin
+man     /usr/sbin/nologin
+lp      /usr/sbin/nologin
+mail    /usr/sbin/nologin
+news    /usr/sbin/nologin
+
+
+#下面命令中的NR是显示行号，NF是显示当前行的字段数，
+#第一行root后续内容以冒号分隔，共6处冒号，所以有7处内容(字段)
+$ awk -F ":" '{print NR,NF, $1}' awk_pwd.txt
+1 7 root
+2 7 daemon
+3 7 bin
+4 7 sys
+5 7 sync
+6 7 games
+7 7 man
+8 7 lp
+9 7 mail
+10 7 news
+
+```
+
+##### RS and ORS
+```bash
+#现有文本如下
+$ cat awk_demo.txt
+pyyu1 pyyu2 pyyu3 pyyu4 pyyu5
+
+
+#正常输出一行
+$ awk '{print NR,$0 }' awk_demo.txt
+1 pyyu1 pyyu2 pyyu3 pyyu4 pyyu5
+
+#修改RS的值
+$ awk -v RS=' ' '{print NR,$0 }' awk_demo.txt
+1 pyyu1
+2 pyyu2
+3 pyyu3
+4 pyyu4
+5 pyyu5
+
+
+
+#修改ORS的值,行尾的\n会被替换为ORS的新值
+$ awk -v ORS='%%%' '{print NR,$0 }' awk_demo.txt
+1 pyyu1 pyyu2 pyyu3 pyyu4 pyyu5%%%
+
+
+
+#对awk_test.txt执行FILENAME
+$ awk '{print FILENAME,$0}' awk_test.txt
+awk_test.txt pyyu1 pyyu2 pyyu3 pyyu4 pyyu5
+awk_test.txt pyyu6 pyyu7 pyyu8 pyyu9 pyyu10
+awk_test.txt pyyu11 pyyu12 pyyu13 pyyu14 pyyu15
+awk_test.txt pyyu16 pyyu17 pyyu18 pyyu19 pyyu20
+awk_test.txt pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+awk_test.txt pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+awk_test.txt pyyu31 pyyu32 pyyu33 pyyu34 pyyu35
+awk_test.txt pyyu36 pyyu37 pyyu38 pyyu39 pyyu40
+awk_test.txt pyyu41 pyyu42 pyyu43 pyyu44 pyyu45
+awk_test.txt pyyu46 pyyu47 pyyu48 pyyu49 pyyu50
+
+
+#再print之前执行动作
+$ awk 'BEGIN{print "我要来了"} {print $0} ' awk_test.txt
+我要来了
+pyyu1 pyyu2 pyyu3 pyyu4 pyyu5
+pyyu6 pyyu7 pyyu8 pyyu9 pyyu10
+pyyu11 pyyu12 pyyu13 pyyu14 pyyu15
+pyyu16 pyyu17 pyyu18 pyyu19 pyyu20
+pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+pyyu31 pyyu32 pyyu33 pyyu34 pyyu35
+pyyu36 pyyu37 pyyu38 pyyu39 pyyu40
+pyyu41 pyyu42 pyyu43 pyyu44 pyyu45
+pyyu46 pyyu47 pyyu48 pyyu49 pyyu50
+
+#接上，打印ARGV数组内的值，ARGV[0]是awk本身
+$ awk 'BEGIN{print "我要来了"} {print ARGV[0],$0} ' awk_test.txt
+我要来了
+awk pyyu1 pyyu2 pyyu3 pyyu4 pyyu5
+awk pyyu6 pyyu7 pyyu8 pyyu9 pyyu10
+awk pyyu11 pyyu12 pyyu13 pyyu14 pyyu15
+awk pyyu16 pyyu17 pyyu18 pyyu19 pyyu20
+awk pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+awk pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+awk pyyu31 pyyu32 pyyu33 pyyu34 pyyu35
+awk pyyu36 pyyu37 pyyu38 pyyu39 pyyu40
+awk pyyu41 pyyu42 pyyu43 pyyu44 pyyu45
+awk pyyu46 pyyu47 pyyu48 pyyu49 pyyu50
+
+
+#ARGV[1]是文件名
+$ awk 'BEGIN{print "我要来了"} {print ARGV[1],$0} ' awk_test.txt
+我要来了
+awk_test.txt pyyu1 pyyu2 pyyu3 pyyu4 pyyu5
+awk_test.txt pyyu6 pyyu7 pyyu8 pyyu9 pyyu10
+awk_test.txt pyyu11 pyyu12 pyyu13 pyyu14 pyyu15
+awk_test.txt pyyu16 pyyu17 pyyu18 pyyu19 pyyu20
+awk_test.txt pyyu21 pyyu22 pyyu23 pyyu24 pyyu25
+awk_test.txt pyyu26 pyyu27 pyyu28 pyyu29 pyyu30
+awk_test.txt pyyu31 pyyu32 pyyu33 pyyu34 pyyu35
+awk_test.txt pyyu36 pyyu37 pyyu38 pyyu39 pyyu40
+awk_test.txt pyyu41 pyyu42 pyyu43 pyyu44 pyyu45
+awk_test.txt pyyu46 pyyu47 pyyu48 pyyu49 pyyu50
+
+#若无print，则只输出BEGIN
+$ awk 'BEGIN{print "我要来了"} ' awk_test.txt
+我要来了
+
+
+#输出ARGV内的所有信息(awk_test.txt 10行，awk_demo.txt 1行，两个文件攻击11行)
+$ awk 'BEGIN{print "我要来了"} {print ARGV[0],ARGV[1],ARGV[2]} ' awk_test.txt awk_demo.txt
+我要来了
+awk awk_test.txt awk_demo.txt
+awk awk_test.txt awk_demo.txt
+awk awk_test.txt awk_demo.txt
+awk awk_test.txt awk_demo.txt
+awk awk_test.txt awk_demo.txt
+awk awk_test.txt awk_demo.txt
+awk awk_test.txt awk_demo.txt
+awk awk_test.txt awk_demo.txt
+awk awk_test.txt awk_demo.txt
+awk awk_test.txt awk_demo.txt
+awk awk_test.txt awk_demo.txt
+
+```
+
+##### awk引用自定义变量
+
+```bash
+$ awk -v myName="alex" 'BEGIN{print "我的名字是？",myName}'
+我的名字是？ alex
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
