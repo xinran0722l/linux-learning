@@ -44,6 +44,7 @@ mou+1minutes/hours/days/weeks
 - crond服务除了会在工作时查看```/var/spool/cron```文件夹下的党史人物文件外
 	* 还会查看```/etc/cron.d```目录以及```/etc/anacrontab```下的内容
 	* 里面存放```每天，每周，每月需要执行的系统任务```
+
 ```bash
 $ ll /etc/ | grep cron*
 drwxr-xr-x   2 root root       4096 Oct 21 17:58 cron.d/	#系统定时任务
@@ -1137,11 +1138,689 @@ top -p pid	#指定查看某一个进程的信息(单独观察该进程)
 ```
 
 
+### nohup命令
+
+- nohup命令可以将程序以忽略挂起信号的形式在后台运行，即被运行的程序，输出结果不打印到终端
+- 无论是否将nohup的输出重定向到终端，nohup的输出都会写入当前目录的nohup.out文件中
+- 如果当前目录的nohup.out禁止写入数据，则nohup会输出到￥HOME/nohup.out中
+
+```bash
+nohup语法
+
+$ nohup ping www.baidu.com
+nohup: ignoring input and appending output to 'nohup.out'
+#注意，此处是nohup后直接跟命令，ping的输出虽写入nohup.out,但终端并未返回
+#关闭终端，ping的进程还会一直在运行，直到进程被干掉
 
 
+#若希望终端返回，如下
+$ nohup: ignoring input and appending output to 'nohup.out'
+
+$ ...
+#结尾加入一个&即可
 
 
+#把命令结果，重定向写入nohup.out中，把标准错误输出到 ```标准输出```，写入到黑洞文件
+标准错误输出	2
+标准输出	1
 
+$ nohup ping www.baidu. > nohup.out 2>&1 &
+[1] 362
+$
+#下面3条为上述命令的输出结果
+tail: nohup.out: file truncated
+nohup: ignoring input
+ping: www.baidu.: Name or service not known
+
+
+#把命令放在后台运行，且无论是正确的输出或错误的输出，都写入黑洞文件
+
+$ nohup ping www.baidu.com > /dev/null 2>&1 &
+```
+
+### bg命令
+
+- bg命令，将程序放入后台运行，使得前台可以运行其他命令
+
+```bash
+bg命令等同于 [命令 &]
+
+#使用一个不中断的命令
+$ ping www.gnu.org
+
+#可以使用ctrl + z键，暂停进程且放入后台
+
+#通过jobs，检查后台的任务
+$ jobs
+[1]+  Stopped                 ping gnu.org
+
+#如果想要前台运行，输入```fg 序号```，后台中的程序，通过弗列好，放入前台继续执行
+$ fg 1
+ping gnu.org
+64 bytes from wildebeest1p.gnu.org (209.51.188.116): icmp_seq=5 ttl=44 time=214 ms
+64 bytes from wildebeest1p.gnu.org (209.51.188.116): icmp_seq=6 ttl=44 time=212 ms
+...
+
+
+#此时可以继续使用ctrl + z命令，将ping进程暂停且放入后台，此时可以使用```bg 序号```
+$ bg 1
+[1]+ ping gnu.org &
+$ 64 bytes from wildebeest1p.gnu.org (209.51.188.116): icmp_seq=13 ttl=44 time=211 ms
+64 bytes from wildebeest1p.gnu.org (209.51.188.116): icmp_seq=14 ttl=44 time=211 ms
+
+
+#如果不想让日志输出在前台，可以输出到文件或黑洞文件中
+#此处有3种方式，可以忽略，标准输出(1)和标准错误输出(2)
+
+#第一种将程序执行正确/错误的输出结果，都写入到黑洞文件
+nohup ping gnu.org > /dev/null 2>&1
+
+#同上
+nohup ping gnu.org 1>/dev/null 2>/dev/null
+
+#同上
+nohup ping gnu.org &>/dev/null
+```
+
+
+### Linux系统运行级别
+
+```bash
+#wsl2的输出如下
+$ runlevel
+unknown
+
+#常见级别如下
+0	关机
+1	单用户模式
+2	多用户模式，无网络模式
+3	完全的多用户模式，有网模式
+4	用户自定义的级别
+5	图形化界面的多用户模式
+6	重启机器
+```
+
+
+### init命令
+
+- init是Linux进程的初始化工具，是所有Linux进程的父进程，进程id默认为1
+
+```bash
+#可以使用init加上级别，直接操作系统运行级别
+$ init 6	#重启Linux机器
+Couldn't find an alternative telinit implementation to spawn.
+#此输出为wsl2的结果
+
+```
+
+
+### htop
+
+```bash
+#进入htop后
+
+#按下F2或者点击setup进入设置界面
+	#可以使用上下左右进行状态栏样式选择，以及用空格切换风格
+
+#按ESC即可推出setup，输出F3，查找进程
+
+#定位到某一进程后，若要干掉，按下F9，且输入Enter，发送终止信号
+
+#按下F5，显示进程的层级关系(进程树)
+
+#支持一些快捷键
+	M 以内存使用量大小排序
+	P 以CPU使用量排序
+	T 以进程运行的时间排序
+	/ 进入搜索输入，查找进程
+```
+
+
+### glances
+
+- glances工具由python编写，使用psutil模块来采集系统的硬件资源
+- glances为Unix和Linux提供专家级的性能检测
+	* CPU使用率
+	* 内存使用情况
+	* 内核统计信息
+	* 磁盘的IO速度，读取速度，写入数据的速度，传输的速率
+	* 文件系统的剩余空间
+	* 网络IO速度，网络的读取和写入的传输速率
+	* 缓存空间的使用情况，swap空间
+	* 动态进程信息
+	* 系统负载信息等
+- glances能将采集的数据，输出到一个文件种，便于数据分析人员对服务器性能报表分析及绘图
+- 可以通过pip安装，也可使用Linux包管理器安装
+
+```bash
+glances的界面信息
+
+输入以下按键
+h	显示glances帮助信息
+q	退出glances
+c	以cpu排序
+m	以内存排序
+i	以IO速率排序
+P	以进程名排序
+d	打开，关闭磁盘读写情况
+f	打开，关闭文件系统剩余空间情况
+```
+
+- glances的web服务功能
+	* 能将glances监控的数据，做成网站
+
+```bash
+此功能需要安装一些依赖
+python3 python3-pip	#wsl2自带gcc，python开发工具包未安装，可以正常访问网址
+#教程中还需要pip install bottle	(未安装)
+
+
+#运行web监控页面
+$ glances -w
+Glances Web User Interface started on http://0.0.0.0:61208/
+
+#其glances -w返回结尾的http链接中，端口号是必须的，但ip要改
+127.0.0.1	本地回环地址，用于机器硬件之间的ip通信，只能内部访问
+
+0.0.0.0	表示绑定服务到这台机器的所有网卡上
+
+192.168.178.183	对外提供访问服务的ip地址，由网卡提供服务
+	192.168.178.183：61208
+
+192.168.178.180	第二块网卡的ip信息
+	192.168.178.180：61208
+
+#查看wsl2的IP
+$ ifconfig eth0 | grep inet
+        inet 172.23.145.45  netmask 255.255.240.0  broadcast 172.23.159.255
+        inet6 fe80::215:5dff:fe23:c7f4  prefixlen 64  scopeid 0x20<link>
+#综上，最后访问ip端口如下
+http://172.23.145.45:61208/
+```
+
+- glances还支持cs模式
+
+```bash
+#服务端运行如下命令
+$ glances -s -B 0.0.0.0
+
+
+#在客户端上连接服务端
+$ glances -c 服务器ip地址
+```
+
+
+## Linux网络
+
+- OSI模型
+
+```bash
+物理层
+数据链路层	物理链路层	以二进制的数据形式在物理媒介上进行传输	ISO@2100协议
+
+网络层		网络		为数据包选择路由				IP ICMP BGP OSPF协议等
+
+传输层		传输		提供端对端的接口，IP port			ICP，UDP
+
+
+会话层
+表示层
+应用层		最接近用户	提供文件传输，邮件，文件共享，数据加密等	HTTP SMTP FTP NFS DNS等
+```
+
+- DNS(Domain Name System)
+	* DNS是互联的一个分布式数据库，主要存储IP和域名的对应关系
+
+- 传输层(Transport Layer)
+	* 向两台主机之间的进程进行提供数据传输
+	
+
+```bash
+TCP(Transmisson Control Propocol),传输控制协议，面向连接的，可靠的数据传输服务
+
+UDP(User Datagram Protocol)，用户数据协议，无连接的，不可靠的传输协议
+
+TCP和UDP的区别
+UDP无连接，TCP面向连接
+
+UDP只能尽力传输，不保证数据可靠性，TCP安全性很高，点对点，一对一的形式
+
+UDP没有报文，TCP有可靠的报文交互
+
+UDP支持一对一，一对多，多对一，多对多的交互通信
+```
+
+### ifconfig
+
+- 用于```配置网卡ip地址信息```，等网络参数信息
+- 能```查看显示网络接口信息```，类似于windows的ipconfig命令
+- 还能```临时性的配置ip地址，子网掩码，广播地址，网关信息```等
+- ifconfig只能root去操作，可能需要单独安装
+
+```bash
+$ ifconfig	#查看所有的网络接口信息
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 172.23.145.45  netmask 255.255.240.0  broadcast 172.23.159.255
+        inet6 fe80::215:5dff:fe23:c7f4  prefixlen 64  scopeid 0x20<link>
+        ether 00:15:5d:23:c7:f4  txqueuelen 1000  (Ethernet)
+        RX packets 44334  bytes 48465300 (48.4 MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 43693  bytes 21300541 (21.3 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+
+#第一块网卡的信息，设备名是eth0，
+$ ifconfig eth0	#查看指定的网卡信息
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 172.23.145.45  netmask 255.255.240.0  broadcast 172.23.159.255
+        inet6 fe80::215:5dff:fe23:c7f4  prefixlen 64  scopeid 0x20<link>
+        ether 00:15:5d:23:c7:f4  txqueuelen 1000  (Ethernet)
+        RX packets 44366  bytes 48469182 (48.4 MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 43729  bytes 21316624 (21.3 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+#ipv4的地址是 inet 172.23.145.45
+#广播地址是 broadcast 172.23.159.255
+#子网掩码地址 netmask 255.255.240.0
+
+RX / TX packages 代表网卡收发的流量数据包大小
+```
+
+- 开启，关闭网卡
+
+```bash
+ifconfig 设备名	up/down
+
+$ ifconfig eth0 down	#关闭网卡
+
+$ ifcofnig eth0 up	#开启网卡
+```
+
+- 修改，设置新ip
+
+```bash
+#添加一个新的ip
+$ ifconfig eth0:0 192.168.178.111 netmask 255.255.255.0 up
+
+#第二种添加方式
+$ ifconfig eth0:1 192.168.178.120/24 up
+```
+
+- 修改MAC地址
+
+```bash
+$ ifconfig eth0 hw ether 00:0c:29:13:10:CF
+
+#修改之后，查看MAC地址信息
+$ ifconfig | grep ether
+...
+```
+
+- 永久修改网络设备信息
+	* ifconfig只是临时修改网络配置，永久修改需要写入到配置文件中
+	* 网卡配置信息
+
+### route命令
+
+- 路由可以裂解为互联网的中转站，网络中的数据报同构一个一个的路由器转发到目的地
+- route命令对Linux内的IP路由表进行操作
+- 路由分为静态路由和动态路由
+	* Linux上配置的都是静态路由，通过route命令管理
+	* 动态路由无需人为干预，由路由器，交换机自动分配规则而来
+
+```bash
+#查看路由表信息
+$ route
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+default         yoga14s.mshome. 0.0.0.0         UG    0      0        0 eth0
+172.23.144.0    0.0.0.0         255.255.240.0   U     0      0        0 eth0
+
+
+#不进行dns解析的路由表查看
+$ route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         172.23.144.1    0.0.0.0         UG    0      0        0 eth0
+172.23.144.0    0.0.0.0         255.255.240.0   U     0      0        0 eth0
+
+
+#参数解析
+Destination	表示网络号，netowrk的意思
+Gateway	表示网关地址，网络是通过该IP出口，如果显示0.0.0.0的ip，表示该路由信息，由本机转发出去
+Genmask	子网掩码地址的表示，IP地址配合子网掩码，才是一个完整的网络信息
+Flags	路由标记，标记当前网络的状态
+	U Up运行的状态
+	G 表示这是一个网关路由器
+	H 表示这个网关是一个主机
+	！ 表示当前这个路由已经禁止
+```
+
+- 添加删除网关信息
+- 网关就是数据报不经任何的设定，由路由表最后经过的地址关口
+- 网关，网络的关口，数据只能通过这个网关地址出外网
+
+```bash
+#删除default默认路由表
+$ route del default
+
+$ route
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+172.23.144.0    0.0.0.0         255.255.240.0   U     0      0        0 eth0
+
+
+#添加路由表
+$ route add default gw 172.23.144.1
+$ route
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+default         yoga14s.mshome. 0.0.0.0         UG    0      0        0 eth0
+172.23.144.0    0.0.0.0         255.255.240.0   U     0      0        0 eth0
+```
+
+
+### IP
+
+- ip命令是iproute包中的网络管理工具，ifconfig和route的作用，查看系统路由，网络设备，设置策略等功能
+
+```bash
+$ ip	#wsl2上等同于ip --help
+Usage: ip [ OPTIONS ] OBJECT { COMMAND | help }
+       ip [ -force ] -batch filename
+where  OBJECT := { link | address | addrlabel | route | rule | neigh | ntable |
+                   tunnel | tuntap | maddress | mroute | mrule | monitor | xfrm |
+                   netns | l2tp | fou | macsec | tcp_metrics | token | netconf | ila |
+                   vrf | sr | nexthop }
+       OPTIONS := { -V[ersion] | -s[tatistics] | -d[etails] | -r[esolve] |
+                    -h[uman-readable] | -iec | -j[son] | -p[retty] |
+                    -f[amily] { inet | inet6 | mpls | bridge | link } |
+                    -4 | -6 | -I | -D | -M | -B | -0 |
+                    -l[oops] { maximum-addr-flush-attempts } | -br[ief] |
+                    -o[neline] | -t[imestamp] | -ts[hort] | -b[atch] [filename] |
+                    -rc[vbuf] [size] | -n[etns] name | -N[umeric] | -a[ll] |
+                    -c[olor]}
+
+#ip命令可以操作的对象
+ObJECT	对象
+link	网络设备
+address	定义IPV4，ipv6的地址
+neighbour	查看ARP缓存地址(ARP用于解析MAC地址)
+route	路由表对象
+maddress	多播地址
+tunel	IP上的通道
+
+ip针对对象要操作的动作，一般是curd
+```
+
+```bash
+#查看，显示网络设备信息
+$ ip addr show
+...
+
+
+#指定网络设备显示信息
+$ ip link show dev eth0
+6: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP mode DEFAULT group default qlen 1000
+    link/ether 00:15:5d:23:c7:f4 brd ff:ff:ff:ff:ff:ff
+
+#显示网络设备信息(更详细的，数据包收发情况)
+$ ip -s link show dev eth0
+6: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP mode DEFAULT group default qlen 1000
+    link/ether 00:15:5d:23:c7:f4 brd ff:ff:ff:ff:ff:ff
+    RX: bytes  packets  errors  dropped overrun mcast
+    51196638   66256    0       0       0       3941
+    TX: bytes  packets  errors  dropped carrier collsns
+    32287326   67985    0       0       0       0
+```
+
+
+- 关闭，激活网络设备
+
+```bash
+#关闭，激活网卡
+$ ip link set eth0 down/up		
+```
+
+- 修改网卡MAC地址信息
+
+```bash
+$ ip link set eth0 address 0:0c:29:13:10:11
+```
+
+- ip命令添加，删除ip信息
+
+```bash
+#添加ip
+$ ip address add 192.168.178.160/24 dev eth0
+
+
+#删除ip
+$ ip address del 192.168.178.161/24 dev eth0
+```
+
+- ip命令给网卡添加别名
+
+```bash
+$ ip address add 192.168.178.188/24 dev eth0 label eth001
+#注意添加后，用ifconfig才能看到别名网卡信息
+```
+
+- 通过ip检查路由
+
+```bash
+$ ip route
+default via 172.23.144.1 dev eth0
+172.23.144.0/20 dev eth0 proto kernel scope link src 172.23.145.45
+```
+
+- ip检查arp缓存(显示网络邻居的信息)，检查MAC地址信息
+
+```bash
+$ ip neighbour
+172.23.144.1 dev eth0 lladdr 00:15:5d:d9:d9:be REACHABLE
+```
+
+
+### netstat
+
+- 显示网络连接情况，路由表信息，端口状态，网络连接情况等
+- 一个进程服务，运行之后，会暴露一个端口号，并产生相应的进程信息
+
+```bash
+#查看所有的网络连接情况
+$ netstat -an
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State
+udp        0      0 127.0.0.1:323           0.0.0.0:*
+udp6       0      0 ::1:323                 :::*
+Active UNIX domain sockets (servers and established)
+Proto RefCnt Flags       Type       State         I-Node   Path
+unix  2      [ ACC ]     STREAM     LISTENING     18416    /run/WSL/1_interop
+unix  2      [ ACC ]     STREAM     LISTENING     22545    /run/WSL/1_interop
+...
+
+#参数解释
+#-a	显示all所有的socket(套接字)信息
+#-n	显示数字地址信息而非主机名
+
+#常见字段解释
+proto	套接字使用的协议
+Recv-Q	连接这个套接字的用户，还未拷贝的字节数
+Send-Q	远程主机还未确认的字节数
+
+Local address	套接字(一个连接情况)本地的地址和端口号
+
+Forign Address	套接字的远程主机地址和端口号
+
+State	套接字的运行情况
+Listen	监听中
+
+
+#一些中啊哟的套接字连接情况的参数
+ESTABLISHED	套接字由一个有效连接
+SYN_SENT	套接字尝试建立一个连接
+SYN_RECV	从网络上收到一个连接请求
+FIN_WAIT1	套接字已关闭，连接正在断开
+FIN_WAIT2	连接已关闭，套接字等待远程方中止
+TIME_WAIT	在关闭之后，套接字等待处理仍然在网络中的分组
+CLOSED	套接字未用
+CLOSE_WAIT	远程方已关闭，等待套接字关闭
+LAST_ACK	远程方中止，套接字已关闭，等待确认
+LISTEN	套接字监听进来的连接，如果不设置 --listening (-l)或 --all(-a)选项，将不会显示这些连接
+CLOSING	套接字都已关闭，而还未把所有数据发出
+UNKNOWN	套接字状态未知
+```
+
+```bash
+#查看本机上正在运行的所有端口情况及进程情况
+$ netstat -tunlp
+(No info could be read for "-p": geteuid()=1000 but you should be root.)
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+udp        0      0 127.0.0.1:323           0.0.0.0:*                           -
+udp6       0      0 ::1:323                 :::*                                -
+
+#参数解释
+#-t	显示出TCP的连接情况
+#-u	显示出UDP的连接情况
+#-n	不进行dns解析
+#-l	只显示正在监听中的套接字情况
+#-p	显示出套接字所属的进程和进程名情况
+
+
+#本地回环地址，用于机器间内部应用通信，外人无法访问，每个机器都有自己的127.0.0.1
+127.0.0.1
+
+0.0.0.0	#绑定机器所有的网卡地址
+
+
+#检查是否运行了3306端口(3306是mysql的默认端口)
+netstat -tunlp | grep 3306	
+```
+- 显示系统的路由表情况
+
+```bash
+$ netstat -rn	#等同于 netstat -n 但两者输出不同
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+0.0.0.0         172.23.144.1    0.0.0.0         UG        0 0          0 eth0
+172.23.144.0    0.0.0.0         255.255.240.0   U         0 0          0 eth0
+```
+
+- 显示网络的接口情况
+
+```bash
+$ netstat -i
+Kernel Interface table
+Iface      MTU    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
+eth0      1500      427      0      0 0            15      0      0      0 BMRU
+lo       65536        0      0      0 0             0      0      0      0 LRU
+
+#字段解释
+Iface	网络设备的名字
+MTU	最大的传输单元，单位是字节
+
+RX-OK/TX-OK	正确接收了多少数据包，发送了多少数据包
+RX-ERR/TX-ERR	接收，发送数据包的时候，丢了多少数据包
+RX-OVR/TX-OVR	由于错误遗失了多少数据包
+FLG标记
+	L 是回环地址的含义
+	R 这个网络接口正在运行中
+	U 接口正处于活动的状态
+	B 设置了广播地址
+	M 接收所有的数据包
+	O 表示在该接口上禁止arp
+	P 端对端的连接
+
+TX-ERR RX-ERR最好是0，否则表示网络状态不健康，有丢包的情况
+```
+
+- 查看服务器监听
+
+```bash
+netstat -tunlp | grep 3306	#监听数据库是否运行
+netstat -tunlp | grep 80	#监听web服务是否运行
+netstat -tunlp | grep 443	#监听https是否运行
+...
+```
+
+- 另一个网络查看工具ss
+
+```bash
+#显示所有的socket套接字连接情况
+$ ss -an
+Netid  State    Recv-Q  Send-Q                          Local Address:Port            Peer Address:Port        Process
+nl     UNCONN   0       0                                           0:-466038966                  *
+nl     UNCONN   0       0                                           0:0                           *
+nl     UNCONN   0       0                                           0:-53312904                   *
+nl     UNCONN   0       0                                           0:218                         *
+nl     UNCONN   0       0                                           0:-1836636604
+...
+```
+
+- 显示出所有正在监听中的套接字情况
+
+```bash
+$ ss -tunlp
+Netid      State       Recv-Q      Send-Q            Local Address:Port             Peer Address:Port      Process
+udp        UNCONN      0           0                     127.0.0.1:323                   0.0.0.0:*
+udp        UNCONN      0           0                         [::1]:323                      [::]:*
+```
+
+
+### ping
+
+- 测试当前主机到目标机器能够通信
+- 也能检测本机能否进行DNS解析
+
+```bash
+$ ping gnu.org
+PING gnu.org (209.51.188.116) 56(84) bytes of data.
+64 bytes from wildebeest1p.gnu.org (209.51.188.116): icmp_seq=1 ttl=44 time=217 ms
+64 bytes from wildebeest1p.gnu.org (209.51.188.116): icmp_seq=2 ttl=44 time=213 ms
+64 bytes from wildebeest1p.gnu.org (209.51.188.116): icmp_seq=3 ttl=44 time=288 ms
+
+#ping返回的结果解析
+第一行为解析域名，发送了56字节的数据
+之后从目标机器收到了64字节的数据
+icmp_seq	表示收到的字节数据序列号
+ttl	数据包的存活时间，单位为秒
+time	是相互通信的延迟时间
+```
+
+- ping用于检测主机网络状态
+
+```bash
+#检测本机能否进行dns解析
+$ ping baidu.com
+ping: baidu.com: Temporary failure in name resolution
+
+#如果出现如上情况，可能是本机无法上网，也可能是无法进行dns解析
+#排查
+检查Linux的dns客户端配置文件/etc/resolv.conf
+确保文件中有dns服务器的地址
+$ cat /etc/resolv.conf
+# This file was automatically generated by WSL. To stop automatic generation of this file, add the following entry to /etc/wsl.conf:
+# [network]
+# generateResolvConf = false
+nameserver 172.23.144.1
+
+当ping远程主机时，出现如下报错，就是本机无法访问外网
+ping 123.206.16.61	#ping一个正确存在的公网ip
+#出现 "Destination Host Unreachable"报错，说明网络配置有问题
+#需要正确配置ip信息，及路由网关地址
+
+```
 
 
 
