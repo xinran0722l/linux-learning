@@ -11,22 +11,25 @@
 9. 跟系统核心有关的文件的帮助文档
 
 ## 目录结构
-- /bin 二进制可执行文件
-- /boot 系统核心文件和开机所需文件(内核)
-- /dev 系统设备相关文件
-- /etc 系统配置文件
-- /home 除根用户外其他用户的家目录
-- /lib 系统和程序运行需要的库函数文件
-- /root root用户的家目录
-- /sbin root用户才能执行的命令文件
-- /srv 服务启动之后需要访问的数据(/srv/www下有Web服务器的数据)
-- /tmp 程序临时存放文件的目录
-- /opt 第三方软件建议安装目录
-- /var 存放经常变化的文件
-- /usr 存放安装程序(软件默认目录)
-- /mnt 文件挂载目录(U盘，光驱)
-- /proc 硬件信息
-- /media 移动设备相关文件(光驱，优盘)
+
+```bash
+/bin	 二进制可执行文件(存放大多数系统命令,如cat,mkdir,mv,cp，chmod...)
+/boot	 系统核心文件和开机所需文件,开机时载入开机管理程序(bootloader)并映像到内存中
+/dev	 系统设备相关文件(如disk,dvd,fd0,stdin,hdc,floppy等)
+/etc	 系统配置文件(如gconf，yum.conf,hosts等)
+/home	 除根用户外其他用户的家目录，管理员添加用户时，在此目录下创建并默认由Desktop目录
+/lib	 系统和程序运行需要的库函数文件(包含C编译器程序需要的函数库，是一组二进制文件，如iptables等)
+/root	 root用户的家目录
+/sbin	 root用户才能执行的命令文件(包含一些重要命令，如shutdown，dump等)
+/srv	 服务启动之后需要访问的数据(/srv/www下有Web服务器的数据)
+/tmp	 程序临时存放文件的目录(用于临时性存储，存在中间产生的临时文件)
+/opt	 第三方软件建议安装目录(如LinuxQQ，Linux opera等)
+/var	 存放经常变化的文件(存放系统定义表，以便在系统运行改变时备份目录，如cache，ftp，mail，www等)
+/usr	 存放安装程序(软件默认目录)，包含一些其他重要内容，如bin，sbin，lib，include等，且bin下含有gcc，python等
+/mnt	 文件挂载目录(U盘，光驱),里面可能包含cdrom，hgfs，floopy等
+/proc	 硬件信息，存放记录系统状态的文件(如meminfo，cpuinfo，devices，version等)
+/media	 移动设备相关文件(光驱，优盘)
+```
 
 #### 文件存放
 - /etc
@@ -140,7 +143,6 @@ ls -l /bin/??sh # 查看/bin下以sh结尾同时长度为4的文件
 ```bash
 #创建以当前时分秒为名称的文件
 touch "`date +%T`".log    #双引号已经解析出了date +%T，但是需要反引号引用
-
 #创建以Y-M-D-H-M-S为名称的文件
 touch "`date +%F`-`date +%T`".log
 ```
@@ -152,13 +154,9 @@ touch "`date +%F`-`date +%T`".log
 tar -cf [打包文件名] [要打包的文件/列表]
 # c 表示创建打包文件
 # f 表示指定打包文件名
-
 tar -tf [已打包的文件]  # 列出其中的文件名
-
 tar -f [已打包的文件]  --delete hello.c  # 删除hello.c
-
 tar -f pkg1.tar -A pkg2.tar # 将pkg2.tar的内容合并到pkg1.tar,不会改变pkg2.tar
-
 tar -xf pkg1.tar  # 解包至当前目录
 tar -xf pkg1.tar -C ~/packge # 解包至指定目录
 ```
@@ -258,3 +256,52 @@ cut [参数] [数值区间] 文件
 - 给命令传递参数的一个过滤器，也是组合多个命令的一个工具
 - 它把一个数据流分割为一些足够的小块，方便过滤器和命令进行处理
 - 简单说：把其他命令给它的数据，传递给它后面的命令作为参数
+
+
+### log
+
+- 日志记录了许多重要的系统事件，包括用户的登录信息，系统的启动信息，系统的安全信息，邮件相关信息，各种服务相关信息等
+- 日志记录了系统每天发生的各种事情，通过日志来检查错误发生的原因，或受到攻击时攻击者留下的痕迹
+
+```bash
+/var/log/boot.log	系统启动日志
+/var/log/cron	记录与系统定时任务相关的日志
+/var/log/cups	打印信息的日志
+/var/log/dmesg	系统开机时内核自检的信总，也可以用dmesg命令直接查看内核自检信息
+/var/log/btmp	错误登录的日志，二进制文件，需要lastab命令查看
+/var/log/lasllog	系统中所有用户最后一次登录时间的日志，二进制文件，需要使用lastlog命令查看
+/var/log/mailog	邮件信息的日志
+/var/log/message	系统重要消息的日志，此文件会记录Linux系统中的绝大多数重要信息，若系统出现问题，首先要检查该文件
+/var/log/secure	记录验证和授权方面的信息，涉及账户和密码的程序都会记录(系统登录，ssh，su，sudo授权)，甚至添加用户和修改用户密码都会被记录
+#Ubuntu20.04和wsl2中都没有这个secure，但是可以查看/var/log/auth.log文件
+
+/var/log/wtmp	永久记录所有用户的登录，注销信息，同时记录系统的后动，重启，关机时间，二进制文件，需要使用last命令查看
+/var/tun/ulmp	记录当前已经登录的用户信息，此文件会随用户登录和注销不断变化，只记录当前登录用户的信息，不能vi查看，需要w，who，users等命令查看
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -106,3 +106,116 @@
 - ```守护进程(Daemon)```
   * 独立于用户终端并周期执行某种任务或等待处理发生的事件
   * 不需要输入即可运行，并为系统或用户提供某种服务
+  * 守护进程又名后台程序/服务
+
+## service (服务)管理
+
+- service(服务)本质就是进程，但是运行在后台，通常都会监听某个端口，等待其他程序的请求
+	* 比如(mysql，sshd，防火墙等)，因此又名守护进程
+
+```bash
+service  服务名  [start | stop | restart | reload | status]
+
+#在CentOS7之后，很多服务不再使用service，二十systemctl
+
+service管理的服务在/etc/init.d中查看
+
+#使用setup -> 系统服务，可以看到全部(wsl2和ESC都无此命令)
+```
+
+- 由于chkcofnig命令被Ubuntu移除，所以不计入
+
+#### systemctl
+
+```bash
+#systemctl基本语法
+systemctl [start | stop | restart | status] 服务名
+systemctl指令管理的服务在/usr/lib/systemd/system中查看
+```
+
+- systemctl设置服务的自启动状态
+
+```bash
+systemctl list-unit-files [| grep 服务名]	#查看服务开机启动状态，grep用于过滤
+systemctl enable 服务名	#设置服务开机启动
+systemctl disable	服务名	#关闭服务开机启动
+systemctl is-enabled 服务名	#检查某个服务是否开机自启
+
+#对于system和systemd，其区别在于最后的d，加d(daemon)是守护进程的意思
+```
+
+
+- 应用防火墙
+
+```bash
+#查看当前防火墙的状况，关闭和重启防火墙(wsl2和ESC中未找到此服务)
+systemctl status firewalld	#查看防火墙状态
+systemctl stop firewalld	#关闭防火墙
+systemctl start firewalld	#开启防火墙
+
+#关闭或启动防火墙后，立即生效(用telnet测试某个端口即可)
+这种方式只能临时生效，当重启系统后，要是回归以前对服务的设置
+若希望设置某个服务自启动或关闭永久生效，使用 systemctl [enable | disable] 服务名
+
+```
+
+- 打开或关闭端口
+
+```bash
+#若打开防火墙，则外部请求数据包无法和服务器监听端口通讯，此时需要打开指定端口，如80，22，8080等
+
+firewall-cmd --permanent --add-port=端口号/协议	#打开端口(注意，端口号和协议中的/是必须写的)，协议可以通过netstat -anp命令查看
+firewall-cmd --permanent --remove-port=端口号/协议	#关闭端口
+firewall-cmd --reload	#重新载入，才能生效
+firewall-cmd --query-port=端口/协议	#查询端口是否开放
+```
+
+- 打开关闭端口案例(Ubuntu上未找到firewall,下面命令均为课件内容)
+
+```bash
+#启动防火墙，测试111端口能否telnet
+#若不行，则执行如下命令
+
+#开放111端口
+firewall-cmd --permanent --add-port=111/tcp	#需要firewall-cmd --reload
+
+#再次关闭111端口
+firewall-cmd --permanent --remove-port=111/tcp	#需要firewall-cmd --reload
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
