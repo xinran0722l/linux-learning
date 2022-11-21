@@ -1,2 +1,3 @@
 - [首页](../README.md)
 - [数据库基础](/Database/database_basic.md)
+- [数据库函数](/Database/database_function.md)

@@ -46,7 +46,6 @@ git checkout 分支名称		#切换分支
 git merge  要合并的分支名称		#合并分支
 //	合并分支前要切换要主分支，在进行合并
 git branch -d 分支名称		#删除分支
-	
 ```
 
 ##	工作流
@@ -56,7 +55,6 @@ git branch -d 分支名称		#删除分支
 
 ## 远程仓库
 ```bash
-
 git remote -v   # 查看添加的远程仓库
 
 git remote add origin git@github.com:Spiderwe/comments.git      #origin是远程源的名字
@@ -72,6 +70,7 @@ git checkout		#切换分支
 
 ##	两地开发
 -	在公司开发
+
 ```bash
 1.切换到dev分支，进行开发(参考上述工作流)
 	git checkout dev
@@ -81,9 +80,10 @@ git checkout		#切换分支
 4.提交代码
 	git add .
 	git commit -m 'xxxxx'
-	git pubash origin dev
+	git push origin dev
 ```
 -	回家继续写代码
+
 ```bash
 1.切换到dev分支，
 	git checkout dev
@@ -93,16 +93,17 @@ git checkout		#切换分支
 4.提交代码
 	git add .
 	git commit -m "xxxx"
-	git pubash origin dev
+	git push origin dev
 ```
 -	在公司继续开发，步骤同上
 
 -	开发完毕，需要上线
+
 ```bash
 1.将dev分支合并到master，进行上线
 git checkout master
 git merge dev
-git pubash origin master
+git push origin master
 
 2.把dev分支也推送到远程
 git checkout dev
