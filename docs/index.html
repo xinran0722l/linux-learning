@@ -7,7 +7,7 @@
   <meta name="description" content="Description">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" title="dark" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/dark.css">
-  <link rel="stylesheet" title="vue" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="stylesheet" title="vue"  href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
   <link rel="icon" href="/favicon.ico" />
 	</head>
 <body>
@@ -17,21 +17,32 @@
  </nav>
 
 
-
 <!-- -->
 <style> .demo-theme-preview a { padding-right: 10px; } .demo-theme-preview a:hover { cursor: pointer; text-decoration: underline; } </style>
 	 <script>
-		var preview = document.querySelector('.demo-theme-preview'); 
-		var themes = document.querySelectorAll('[rel="stylesheet"]');
+		const preview = document.querySelector('.demo-theme-preview'); 
+		const themes = document.querySelectorAll('[rel="stylesheet"]');
 
 		 preview.onclick = function (e) {
-			 var title = e.target.getAttribute('data-theme');
+         //   console.log(themes)
+			 const title = e.target.getAttribute('data-theme');
+        //  console.log('e.target ',e.target)
+        //    console.log('is title ',title)
 
 			 themes.forEach(function (theme) { 
-
-			theme.disabled = theme.title !== title; 
-
+      //      console.log('theme.disabled ',theme.disabled)
+    //        console.log('theme.title ',theme.title)
+  //          console.log('title ',title)
+ //         theme.disabled = theme.title !== title;
+ //             if (theme.title != title) theme.disabled = 'false'
+              theme.disabled = 'true'
 			}); 
+        themes.forEach( (theme) => {
+               if (theme.title == title){
+//                  theme.disabled = 'false'
+                  theme.removeAttribute('disabled')
+              } 
+          })
 		}; 
 	</script>
 
