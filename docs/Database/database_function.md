@@ -15,7 +15,7 @@
 | LTRIM(string2) RTRIM(string2) trim(string) | 去除前端空格或后端空格  |
 
 
-```SQL
+```sql
 #使用emp表演示字符串函数
 #CHARSET(str)返回字符串字符集
 select charset(ename) from emp;
@@ -79,7 +79,7 @@ select concat(LCASE(SUBSTRING(ename,1,1)),SUBSTRING(ename,2,LENGTH(ename)-1)) as
 | RAND([seed]) | RAND([seed])随机范围为0<= v <= 1.0 | 
 
 
-```SQL
+```sql
 -- ABS(sum)	绝对值
 SELECT ABS(-10) FROM DUAL;
 
@@ -129,7 +129,7 @@ SELECT RAND() FROM DUAL;
 | NOW() | 当前时间 |
 | YEAR\|MONTH\|DATE(datetime)  FROM_UNIXTIME()| 年月日 |
 
-```SQL
+```sql
 DATE()
 DATE_ADD()
 DATE_SUB()
@@ -139,7 +139,7 @@ DATEDIFF()
 
 - CURRENT_DATE()	当前日期
 
-```SQL
+```sql
 mysql> select current_date() from dual;
 +----------------+
 | current_date() |
@@ -150,7 +150,7 @@ mysql> select current_date() from dual;
 ```
 - CURRENT_TIME()	当前时间
 
-```SQL
+```sql
 mysql> select current_time() from dual;
 +----------------+
 | current_time() |
@@ -161,7 +161,7 @@ mysql> select current_time() from dual;
 ```
 - CURRENT_TIMESTAMP()	当前时间戳
 
-```SQL
+```sql
 mysql> select current_timestamp() from dual;
 +---------------------+
 | current_timestamp() |
@@ -172,7 +172,7 @@ mysql> select current_timestamp() from dual;
 ```
 - NOW()	当前时间
 
-```SQL
+```sql
 mysql> select now() from DUAL;
 +---------------------+
 | now()               |
@@ -184,7 +184,7 @@ mysql> select now() from DUAL;
 
 - DATEDIFF(date1,date2)	两个日期差(结果为天)
 
-```SQL
+```sql
 datediff()得到的是天数，而且是date1-date2的天数(可以取负 )
 
 #求出2011-11-11和1990-01-01相差几天
@@ -219,7 +219,7 @@ mysql> select datediff(now(), '1990-11-11') / 365 from dual;
 
 - 创建一个表用于演示时间函数
 
-```SQL
+```sql
 create table mes (
 	id int,
 	content varchar(30),
@@ -236,7 +236,7 @@ select * from mes;
 
 - DATE(datetime)	返回datetime的日期部分
 
-```SQL
+```sql
 #显示表mes中所有新闻信息，发布日期只显示日期，不显示时间
 
 mysql> select id,content,date(send_time) from mes;
@@ -252,7 +252,7 @@ mysql> select id,content,date(send_time) from mes;
 
 - DATE_ADD(date2,INTERVAL d_value d_type)	在date2中加上日期或时间
 
-```SQL
+```sql
 date_add()中的 interval 后面可以是 year，minute，second，hour,day等
 
 #请查询在10分钟内发布的新闻
@@ -282,7 +282,7 @@ mysql> select datediff(date_add('1990-11-11', interval 80 year), now()) from DUA
 
 - DATE_SUB(date2,INTERVAL d_value d_type)	在date2上减去一个时间
 
-```SQL
+```sql
 date_sub() 中的interval后面可以是year，minute，second，hour,day等
 
 #请查询在10分钟内发布的新闻
@@ -299,7 +299,7 @@ mysql> select * from mes where send_time >= date_sub(now(), interval 10 minute);
 
 - TIMEDIFF(date1,date2)	两个时间差(单位时分秒)
 
-```SQL
+```sql
 mysql> select timediff('11:11:11','08:08:08') from DUAL;
 +---------------------------------+
 | timediff('11:11:11','08:08:08') |
@@ -311,7 +311,7 @@ mysql> select timediff('11:11:11','08:08:08') from DUAL;
 
 - unix_timestamp()	返回unix元年至今的秒数
 
-```SQL
+```sql
 mysql> select unix_timestamp() / (24*365*3600) from dual;
 +----------------------------------+
 | unix_timestamp() / (24*365*3600) |
@@ -322,7 +322,7 @@ mysql> select unix_timestamp() / (24*365*3600) from dual;
 ```
 - FROM_UNIXTIME() 将一个unix_timestamp() 秒数，转换为指定格式的日期
 
-```SQL
+```sql
 mysql> select from_unixtime(1669087945) from DUAL;
 +---------------------------+
 | from_unixtime(1669087945) |
@@ -350,7 +350,7 @@ mysql> select from_unixtime(1669087945, '%Y-%m-%d %H:%i:%s') from DUAL;
 
 - YEAR|MONTH|DATE(datetime) 年月日 
 
-```SQL
+```sql
 mysql> select now() from DUAL;
 +---------------------+
 | now()               |
@@ -401,11 +401,11 @@ mysql> select year('1990-11-11') from DUAL;
 | USER() | 查询用户 | 
 | DATABASE() | 数据库名称 |
 | MD5(str) | 为字符串算出一个MD5 32的字符串(用户密码加密) |
-| PASSWORD(str) | 从原文密码str计算并返回密码字符串，MySQL8.0以取消 |
+| PASSWORD(str) | 从原文密码str计算并返回密码字符串，Mysql8.0以取消 |
 
 - USER()	查询用户
 
-```SQL
+```sql
 #user()返回格式为 用户@IP地址
 
 mysql> SELECT USER() FROM DUAL;
@@ -418,7 +418,7 @@ mysql> SELECT USER() FROM DUAL;
 ```
 - DATABASE()	数据库名称
 
-```SQL
+```sql
 mysql> select database() from dual;
 +------------+
 | database() |
@@ -429,7 +429,7 @@ mysql> select database() from dual;
 ```
 - MD5(str)	为字符串算出一个MD5 32的字符串(用户密码加密)
 
-```SQL
+```sql
 mysql> select md5('hello') from dual;
 +----------------------------------+
 | md5('hello')                     |
@@ -450,7 +450,7 @@ mysql> select length(md5('hello')) from dual;
 
 - 创建一个加密测试表pwd_users
 
-```SQL
+```sql
 mysql> create table pwd_users(id int,
     -> `name` varchar(32) not null default '',
     -> pwd char(32) not null default ''
@@ -463,7 +463,7 @@ Empty set (0.00 sec)
 
 - 添加信息至表pwd_users
 
-```SQL
+```sql
 mysql> insert into pwd_users
     -> values(100,'testuser',md5('hello')
     -> );
@@ -479,7 +479,7 @@ mysql> select * from pwd_users;
 ```
 - 查询加密后的行
 
-```SQL
+```sql
 mysql> select * from pwd_users
     -> where `name` = 'testuser' AND pwd = md5('hello');
 
@@ -493,7 +493,7 @@ mysql> select * from pwd_users
 
 - mysql.user 表示 数据库.表
 
-```SQL
+```sql
 #先查看当前有哪些数据库
 mysql> show databases;
 +--------------------+
@@ -542,7 +542,7 @@ mysql> select * from mysql.user;
 
 - IF(expr1,expr2,expr3)	如果expr1为True，则返回expr2，否则返回expr3
 
-```SQL
+```sql
 mysql> select if(true, 'bg','sh') from dual;
 +---------------------+
 | if(true, 'bg','sh') |
@@ -562,7 +562,7 @@ mysql> select if(false,'bg','sh') from dual;
 
 - IFNULL(expr1,expr2)	如果expr1不为空NULL，则返回expr1，否则返回expr2
 
-```SQL
+```sql
 mysql> select ifnull('bg','sh') from dual;
 +-------------------+
 | ifnull('bg','sh') |
@@ -582,7 +582,7 @@ mysql> select ifnull(null,'sh') from dual;
 
 - case when .. then .. else .. end 多分支
 
-```SQL
+```sql
 #同编程语言中的if..else
 
 mysql> select case
@@ -616,7 +616,7 @@ mysql> SELECT CASE
 
 - 判断表中字段是否为空(is null is not null)
 
-```SQL
+```sql
 #以base_db02数据库中表emp演示，其中emp如下
 mysql> select * from emp;
 +-------+--------+-----------+------+------------+---------+---------+--------+
@@ -683,7 +683,7 @@ mysql> select ename, ifnull(comm,0.0) from emp;
 
 - 使用emp表演示多分支
 
-```SQL
+```sql
 #如果emp表中的job是CLERK则显示职员，如果是MANAGE则显示管理
 #	如果是SALESMAN则显示销售，其他正常显示
 

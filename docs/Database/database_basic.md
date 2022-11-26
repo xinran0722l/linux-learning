@@ -40,23 +40,23 @@ DROP DATABASE base_db01
 
 #### 备份数据库
 
-```SQL
+```sql
 #mysqldump命令需要在DOS命令行中执行
 mysqldump -u 用户名 -p -B 数据库1 数据库2 数据库n > 文件名.sql
 
-#恢复数据库(进入MySQL中在执行)
+#恢复数据库(进入Mysql中在执行)
 Source 文件名.sql
 ```
 - 练习：备份base_db02/03两个库中的数据，并恢复
 
-```SQL
+```sql
 mysqldump -u root -p -B base_db02 base_db03 > D:\\bak.sql
 Enter PASSWORD: ********
 #D:\\bak.sql内容就是创建两个db，及其中的内容
 #也可以全部执行该备份文件的sql语句来手动恢复
 
 
-#恢复数据库(需要进入MySQL，在其中执行)
+#恢复数据库(需要进入Mysql，在其中执行)
 SOURCE D:\\bak.sql
 
 #备份一个数据库中的多张表
@@ -66,7 +66,7 @@ mysqldump -u 用户名 -p 数据库 表1 表2 表n > D:\\文件名.sql
 
 #### 创建表
 
-```SQL
+```sql
 CREATE TABLE table_bane 
 (
 	field1 datatype,
@@ -82,7 +82,7 @@ engine	引擎(设计内容较多)
 ```
 - 练习
 
-```SQL
+```sql
 #创建一个user表，数据类型的定义如下
 #id	整形
 #name	字符串
@@ -97,9 +97,9 @@ CREATE TABLE `user` (
 )CHARACTER SET utf8mb3 COLLATE utf8mb3_bin ENGINE INNODB;`user``user`
 ```
 
-#### MySQL常用数据类型(列类型，字段类型)
+#### Mysql常用数据类型(列类型，字段类型)
 
-```SQL
+```sql
 		BIT(M)	位类型，M指定位数，默认值1，范围1~64
 数值类型	TINYINT [UNSIGEND] 占1个字节	带符号的范围是-128到127， 无符号0到255，默认有符号
 		SAMLLINT [UNSIGEND] 2个字节	带符号是 负的2^15到2^15-1,无符号0到2^16-1
@@ -123,7 +123,7 @@ CREATE TABLE `user` (
 
 - 创建表练习
 
-```SQL
+```sql
 #创建表emp，使用适当的数据类型，字段如下
 #id	整形
 #name 字符型
@@ -250,7 +250,7 @@ insert into goods(id,price)
 ```
 - 插入练习
 
-```SQL
+```sql
   #创建一张商品记录表goods(id int ,goods_name varchar(10), price double)
   # 添加2条记录
   
@@ -274,7 +274,7 @@ SELECT * FROM goods
 
 - 使用update语句修改表中数据
 
-```SQL
+```sql
 UPDATE table_name
 	SET col_name1=expr1 [, col_name2=expr2 ...]
 	[WHERE where_definition]
@@ -288,7 +288,7 @@ WHERE 子句指定应更新哪些行，若无WHERE子句，则更新所有行
 
 - update练习
 
-```SQL
+```sql
 #演示update
 #修改employee表中的数据
 #1.将所有员工薪水修改为5K
@@ -309,7 +309,7 @@ update employee set salary=salary + 2000 where user_name='金角';
 
 - 使用delete语句删除表中数据
 
-```SQL
+```sql
 delete from table_name
 	[WHERE where_definition]
 
@@ -323,7 +323,7 @@ Delete语句不能删除某一列的值(可使用update设为null或'')
 
 - delete练习
 
-```SQL
+```sql
 #删除表employee中名为金角的记录
 DELETE FROM employee WHERE user_name='金角'
 
@@ -336,7 +336,7 @@ SELECT * FROM employee
 #### select
 
 
-```SQL
+```sql
 SELECT [DISTINCT] * | {column1, column2, column3 ... }
 	FROM table_name;
 
@@ -351,7 +351,7 @@ DISTINCT可选，指显示结果时，是否去掉重复数据
 
 - select练习
 
-```SQL
+```sql
 create table `student` (
 	id int not null default 1,
 	`student_name` varchar(20) not null default '',
@@ -384,7 +384,7 @@ select distinct `student_name`,english from student #无法去重
 ```
 - select 运算和别名
 
-```SQL
+```sql
 #运算
 SELECT *| {column1 | expression, column2 | expression, ...}
 	FROM table_name;
@@ -393,7 +393,7 @@ SELECT *| {column1 | expression, column2 | expression, ...}
 SELECT column_name as 别名 from 表名;
 ```
 
-```SQL
+```sql
 #统计每个学生的总分
 SELECT `student_name`,(chinese + english+math) FROM student
 
@@ -421,7 +421,7 @@ SELECT `student_name` AS '姓名',(chinese+english+math+10) AS '总分'
 | not | 不成立 |
 
 
-```SQL
+```sql
 #查询姓名为Cc的成绩
 SELECT * FROM `student`
 	WHERE `student_name` = 'Cc'
@@ -477,7 +477,7 @@ SELECT * FROM student
 
 - ```order by```子句用于排序查询结果
 
-```SQL
+```sql
 SELECT column1, column2, column3 ...
 	FROM table_name;
 	order by column asc|desc, ...
@@ -490,7 +490,7 @@ order by 子句应位于select的结尾
 
 - order by 练习
 
-```SQL
+```sql
 #对数学成绩排序后输出(升序)
 SELECT * FROM student
 	ORDER BY math ASC
@@ -506,18 +506,18 @@ SELECT `student_name`, (chinese+english+math) AS total_score
 ```
 - count统计函数
 
-```SQL
+```sql
 SELECT count(*) count(列名) FROM table_name
 	[WHERE where_definition]
 ```
 - sum函数返回满足where条件的行的和
 
-```SQL
+```sql
 SELECT sum(列名) {， sum(列名) ... } FROM table_name
 	[WHERE where_definition]
 ```
 
-```SQL
+```sql
 #统计一个班级数学总成绩
 SELECT SUM(math) FROM student
 
@@ -535,12 +535,12 @@ SELECT SUM(chinese) / COUNT(*) FROM student
 
 - avg函数返回满足where条件的一列的平均值
 
-```SQL
+```sql
 SELECT avg(列名) { , avg(列名) ... } FROM table_name
 	[WHERE where_definition] 
 ```
 
-```SQL
+```sql
 #求一个班级数学平均分
 SELECT AVG(math) FROM student
 
@@ -549,12 +549,12 @@ SELECT AVG(chinese+english+math) FROM student
 ```
 - Max/min函数返回满足where条件的一列的最大/最小值
 
-```SQL
+```sql
 SELECT max(列名) FROM table_name
 	[WHERE where_definition]
 ```
 
-```SQL
+```sql
 #求班级最高分和最低分
 SELECT MAX(chinese+english+math),MIN(chinese+english+math)
 	FROM student
@@ -565,7 +565,7 @@ SELECT MAX(math),MIN(math) FROM student
 
 - group by子句对列进行分组查询
 
-```SQL
+```sql
 SELECT column1, column2, column3 .. FROM table_name
 	group by column
 
@@ -573,14 +573,14 @@ SELECT column1, column2, column3 .. FROM table_name
 ```
 - 使用having子句对分组后的结果进行过滤
 
-```SQL
+```sql
 SELECT column1, column2, column3 ..
 	FROM table_name
 	group by column having ..
 #having子句用于限制分组显示结果
 ```
 
-```SQL
+```sql
 /*部门表*/
 CREATE TABLE dept(
     deptno MEDIUMINT UNSIGNED NOT NULL DEFAULT 0,
@@ -713,9 +713,9 @@ SELECT AVG(sal) AS avg_sal, deptno
 mysql -u root -p
 
 Enter password:plgxY5Td#ssy	#输入mysql初次给的随机密码
-#密码正确输入后，此时就可以成功进入MySQL
+#密码正确输入后，此时就可以成功进入Mysql
 
-#若在MySQL命令行中执行 use mysql后报错，则需要修改随机密码
+#若在Mysql命令行中执行 use mysql后报错，则需要修改随机密码
 mysql> ALERT USER 'root'@'localhost' identified by 'admin123456';
 #此时密码已被重新设置，若要立即生效，还需要命令行刷新(执行如下命令)
 mysql> flush privileges;	#刷新

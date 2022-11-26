@@ -1,7 +1,7 @@
 ## mysql 约束
 
 - 约束用于确保数据库的数据满足特定的规则
-	* MySQL中的约束如下
+	* Mysql中的约束如下
 	1. not null
 	2. unique
 	3. primary key
@@ -10,7 +10,7 @@
 
 #### primary key(主键)
 
-```SQL
+```sql
 字段名	字段类型 primary key
 
 #用于唯一的标识表行的数据,当定义主键约束后,该列不能重复
@@ -18,7 +18,7 @@
 
 - primary key演示
 
-```SQL
+```sql
 CREATE TABLE t17(
 	id INT PRIMARY KEY, -- 标识id列是主键
 	`name` VARCHAR(32),
@@ -57,7 +57,7 @@ mysql> desc t17;
 
 - primary key不能重复且不能为NULL
 
-```SQL
+```sql
 INSERT INTO t17
 	VALUES(NULL,'ji','ji@sohu.com');
 -- Column 'id' cannot be null
@@ -66,7 +66,7 @@ INSERT INTO t17
 
 - 一张表最多只能由一个主键,但可以是复合主键(比如id+name)
 
-```SQL
+```sql
 -- 主键的指定方式有两种 
 -- 直接在字段名后指定: 字段名 primary key
 -- 在表定义最后写 primary key(列名);
@@ -93,7 +93,7 @@ INSERT INTO t18	-- Error
 
 - 使用desc 表名,可以看到primary key的情况
 
-```SQL
+```sql
 mysql> desc t18;
 +-------+-------------+------+-----+---------+-------+
 | Field | Type        | Null | Key | Default | Extra |
@@ -109,7 +109,7 @@ mysql> desc t18;
 
 - 如果在列上定义了not null,那么当插入数据时,必须为列提供数据
 
-```SQL
+```sql
 字段名	字段类型 not null DEAFULT (此处写入一个值)
 ```
 
@@ -117,14 +117,14 @@ mysql> desc t18;
 
 - 当定义了唯一约束后,该列值是不能重复的
 
-```SQL
+```sql
 字段名	字段类型 unique
 
 #如果没有指定NOT NULL,则unique字段可以有多个NULL
 #一张表可以有多个unique字段
 ```
 
-```SQL
+```sql
 CREATE TABLE t21(
 	id INT UNIQUE,	-- 表示id列不可重复,但可为NULL,且该表可指定多个unique
 	`name` VARCHAR(32),
@@ -138,7 +138,7 @@ INSERT INTO t21	-- Error
 
 - 如果没有指定NOT NULL,则unique字段可以有多个NULL
 
-```SQL
+```sql
 INSERT INTO t21	-- 执行3次
 	VALUES(NULL,'jira','jira@sohu.com');
 
@@ -156,7 +156,7 @@ mysql> select * from t21;
 ```
 - 一张表可以有多个unique字段
 
-```SQL
+```sql
 CREATE TABLE t22(
 	id INT UNIQUE, #表示id列不可重复
 	`name` VARCHAR(32) UNIQUE, #表示name列不可重复
@@ -181,7 +181,7 @@ mysql> desc t22;
 - 当定义外键约束后,要求外键列数据必须在主表的主键列存在或为NULL
 
 
-```SQL
+```sql
 FOREIGN KEY (本表字段名) REFERENCES
 主表名(主键名或unique字段名)
 
@@ -192,7 +192,7 @@ FOREIGN KEY (本表字段名) REFERENCES
 一旦建立外键关系,数据就不能随意删除
 ```
  
-```SQL
+```sql
 -- 先创建主表my_class
 CREATE TABLE my_class(
 	id INT PRIMARY KEY, -- 班级编号
@@ -247,7 +247,7 @@ mysql> select * from my_stu;
 ```
 - 外键字段的值,必须在主键字段中出现过,或者为NULL [前提是外键字段允许为NULL]
 
-```SQL
+```sql
 INSERT INTO my_stu
 	VALUES(4,'marry',NULL);
 
@@ -268,13 +268,13 @@ mysql> select * from my_stu;
 - 假定再sal列上定义了check约束,并要求sal列值在1K~2K之间
 	* 如果不在1K~2K之间就会Error
 
-```SQL
+```sql
 列名	类型	check(check条件)
 user 表
 id,name,sex(man,woman),sal(大于100小于900)
 ```
 
-```SQL
+```sql
 #创建用于测试check的表t23
 CREATE TABLE t23 (
 	id INT PRIMARY KEY,

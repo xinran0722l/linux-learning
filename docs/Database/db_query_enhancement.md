@@ -2,7 +2,7 @@
 
 - 为了方便演示，先展示测试表
 
-```SQL
+```sql
 #共使用表emp,dept和salgrade三张
 
 mysql> select * from dept;
@@ -53,8 +53,8 @@ mysql> select * from emp;
 
 - 使用where子句,查找1991.11.11后入职的员工
 
-```SQL
--- 在MySQL中，日期类型可以直接比较
+```sql
+-- 在Mysql中，日期类型可以直接比较
 mysql> select * from emp
     -> WHERE hiredate > '1991-11-11';
 +-------+-------+-----------+------+------------+---------+------+--------+
@@ -68,7 +68,7 @@ mysql> select * from emp
 ```
 - LIKE(模糊查询)
 
-```SQL
+```sql
 -- % 表示0到多个字符 _表示单个字符
 
 #查找名字以大写S开头的信息
@@ -104,7 +104,7 @@ mysql> select * from emp
 ```
 - 查询表emp的结构 (DESC命令)
 
-```SQL
+```sql
 mysql> DESC emp;
 +----------+--------------------+------+-----+---------+-------+
 | Field    | Type               | Null | Key | Default | Extra |
@@ -125,7 +125,7 @@ mysql> DESC emp;
 
 - 如何按照工资的从低到高的顺序，显示员工的信息
 
-```SQL
+```sql
 mysql> select * from emp
     -> order by sal;
 +-------+--------+-----------+------+------------+---------+---------+--------+
@@ -150,7 +150,7 @@ mysql> select * from emp
 
 - 按照部门号升序而员工的工资降序排列，显示员工信息
 
-```SQL
+```sql
 mysql> select * from emp
     -> order by deptno , sal desc;
 +-------+--------+-----------+------+------------+---------+---------+--------+
@@ -177,13 +177,13 @@ mysql> select * from emp
 
 - 基本语法
 
-```SQL
+```sql
 select ... limit start, rows
 表示从start + 1行开始取，去除rows行，start从0开始计算
 ```
 - 按员工的id升序取出，每页显示3条记录，分别显示第一页，第二页，第三页
 
-```SQL
+```sql
 #第一页
 mysql> select * from emp
     -> order by empno
@@ -232,7 +232,7 @@ SELECT * FROM emp
 
 - 按雇员的empno降序取出，每页显示5条记录，分别显示第3页，第五页的sql语句
 
-```SQL
+```sql
 #第三页
 SELECT * FROM emp
 	ORDER BY empno
@@ -248,7 +248,7 @@ SELECT * FROM emp
 
 - 显示每种岗位的员工总数，平均工资
 
-```SQL
+```sql
 mysql> select count(*),avg(sal),job
     -> from emp
     -> group by job;
@@ -265,7 +265,7 @@ mysql> select count(*),avg(sal),job
 ```
 - 显示员工总数，以及获得补助(comm字段，列) 的员工数
 
-```SQL
+```sql
 #获得补助就是comm字段非NULL，count(列)不会统计NULL
 
 mysql> select count(*),count(comm) from emp;
@@ -288,7 +288,7 @@ mysql> select count(if(comm is null,1,null)) from emp;
 
 - 显示管理的总人数
 
-```SQL
+```sql
 mysql> select count(distinct mgr) from emp;
 +---------------------+
 | count(distinct mgr) |
@@ -299,7 +299,7 @@ mysql> select count(distinct mgr) from emp;
 ```
 - 显示员工工资的最大差额
 
-```SQL
+```sql
 mysql> select max(sal) - min(sal) from emp;
 +---------------------+
 | max(sal) - min(sal) |
@@ -311,7 +311,7 @@ mysql> select max(sal) - min(sal) from emp;
 
 - 优先级
 
-```SQL
+```sql
 如果select语句同时包含 group by, having,limit, order by
 那么它们的顺序是 group by, having,order by, limit
 
@@ -324,7 +324,7 @@ SELECT column1,column2 ... FROM table_name
 
 - 统计各部门的平均工资，并大于1K，并按照平均工资降序排列，取出前两行记录
 
-```SQL
+```sql
 mysql> select deptno,AVG(sal) as avg_sal
     -> from emp
     -> group by deptno 
@@ -343,7 +343,7 @@ mysql> select deptno,AVG(sal) as avg_sal
 
 ## 多表查询
 
-```SQL
+```sql
 在默认情况下，当两张表查询时：
 从第一张表中，取出一行，和第二张表的每一行进行组合，返回结果[含有两张表的所有列]
 
@@ -356,7 +356,7 @@ mysql> select deptno,AVG(sal) as avg_sal
 note: 多表查询的条件不能少于 表的个数-1， 否则会出现笛卡尔集
 ```
 
-```SQL
+```sql
 #回顾下dept表，共4行信息
 
 mysql> select * from dept;
@@ -455,7 +455,7 @@ mysql> select * from emp,dept;
 
 - 显示员工名，员工工资及所在部门 [笛卡尔集]
 
-```SQL
+```sql
 #员工名，员工工资来自emp表
 #部门名来自dept表
 #需要对emp和dept查询
@@ -508,7 +508,7 @@ mysql> select ename,sal,dname,emp.deptno
 ```
 - 显示部门号为10的部门名，员工名和工资
 
-```SQL
+```sql
 mysql> select ename,sal,dname,emp.deptno
     -> from emp,dept
     -> where emp.deptno = dept.deptno AND emp.deptno = 10;
@@ -524,7 +524,7 @@ mysql> select ename,sal,dname,emp.deptno
 
 - 显示各个员工的姓名，工资，以及工资的级别
 
-```SQL
+```sql
 #先回顾下表salgrade
 mysql> select * from salgrade;
 +-------+---------+---------+
@@ -564,7 +564,7 @@ mysql> select ename,sal,grade
 
 #### 多表查询的自连接
 
-```SQL
+```sql
 自连接的特点
 	把同一张表当作两张表使用
 	需要给表取别名		表名	表的别名
@@ -573,7 +573,7 @@ mysql> select ename,sal,grade
 
 - 显示公司员工和他上级的名字
 
-```SQL
+```sql
 mysql> select worker.ename AS '员工名', boss.ename AS '上级名'
     -> from emp worker, emp boss
     -> where worker.mgr = boss.empno;
@@ -608,7 +608,7 @@ mysql> select worker.ename AS '员工名', boss.ename AS '上级名'
 
 - 如何显示与SMITH同一部门的所有员工(单行查询)
 
-```SQL
+```sql
 #先查询SMITH的部门编号
 mysql> select deptno from emp
     -> where ename = 'SMITH';
@@ -638,7 +638,7 @@ mysql> select * from emp
 
 - 如何查询和部门10的工作相同的员工的,名字、岗位、工资、部门号，但是不包含10自己的(多行子查询)
 
-```SQL
+```sql
 #首先查询部门为10的岗位
 mysql> select job from emp
     -> where deptno = 10;
@@ -698,7 +698,7 @@ mysql> select ename,job,sal,deptno from emp
 
 - 显示工资比部门30的所有员工的工资高的员工的姓名，工资和部门号
 
-```SQL
+```sql
 #使用all
 mysql> select ename,sal,deptno from emp
     -> where sal > all(
@@ -734,7 +734,7 @@ mysql> select ename,sal,deptno from emp
 
 - 如何显示工资比部门30的其中一个员工的工资高的员工的姓名，工资和部门号
 
-```SQL
+```sql
 #使用any
 mysql> select ename,sal,deptno from emp
     -> where sal > any(
@@ -788,7 +788,7 @@ mysql> select ename,sal,deptno from emp
 
 - 查询与ALLEN的部门和岗位完全相同的所有员工(并且不含SMITH)
 
-```SQL
+```sql
 mysql> select * from emp
     -> where (deptno,job) = (
     -> select deptno,job from emp
@@ -808,7 +808,7 @@ mysql> select * from emp
 
 - 查找每个部门工资高于本部门平均工资的员工资料
 
-```SQL
+```sql
 #这里会用到将一个子查询当作一个临时表使用
 #首先得到每个部門的部門號和對應的平均工資
 mysql> select deptno,AVG(sal) as avg_sal from emp
@@ -845,7 +845,7 @@ mysql> SELECT ename,sal,temp.avg_sal,emp.`deptno`
 
 - 查找每個部門工資最高的人的詳細資料
 
-```SQL
+```sql
 #首先查找部門最高工資
 mysql> select deptno,max(sal) from emp
     -> group by deptno;
@@ -878,7 +878,7 @@ mysql> SELECT *
 ```
 - 查詢每個部門的信息(部門名，編號，地址)和人員數量
 
-```SQL
+```sql
 #先查詢每個部門的人數
 mysql> select deptno,count(*) from emp
     -> group by deptno;
@@ -929,7 +929,7 @@ mysql> SELECT tmp.*,dname,loc
 
 - 复制表
 
-```SQL
+```sql
 #先创建一张表
 CREATE TABLE my_table01
 	( id INT,
@@ -962,7 +962,7 @@ INSERT INTO my_table01
 ```
 - 去重
 
-```SQL
+```sql
 #首先创建一张表my_table02
 CREATE TABLE my_table02 LIKE emp; -- 此语句将emp表的结构(所有字段)复制到LIKE关键字前面的表名中
 
@@ -1022,7 +1022,7 @@ Query OK, 0 rows affected (0.01 sec)
 
 - ```union all```用于取得2各结果集的并集,不会去重
 
-```SQL
+```sql
 #得到5条数据
 mysql> SELECT ename,sal,job FROM emp
     ->  WHERE sal > 2500;
@@ -1070,7 +1070,7 @@ mysql> SELECT ename,sal,job FROM emp WHERE sal > 2500
 
 - union,与union all相似,但会去重
 
-```SQL
+```sql
 mysql> SELECT ename,sal,job FROM emp WHERE sal > 2500
     -> UNION
     -> SELECT ename,sal,job FROM emp WHERE job = 'MANAGER';
@@ -1097,7 +1097,7 @@ mysql> SELECT ename,sal,job FROM emp WHERE sal > 2500
 
 - 外连接的语法
 
-```SQL
+```sql
 #左连接
 select ... from 表1 left join 表2 on 条件
 
@@ -1105,7 +1105,7 @@ select ... from 表1 left join 表2 on 条件
 select ... from 表1 right join 表2 on 条件
 ```
 
-```SQL
+```sql
 #演示外连接
 #先创建stu
 CREATE TABLE stu (
@@ -1145,7 +1145,7 @@ mysql> select * from exam;
 
 - 使用左连接(显示所有人的成绩,若无,也要显示该人的姓名和id号,成绩显示为空)
 
-```SQL
+```sql
 #之前的查询方法(无法实现题目要求)
 mysql> SELECT `name`,stu.id,grade
     ->  FROM stu,exam
@@ -1174,7 +1174,7 @@ mysql> SELECT `name`,stu.id,grade
 ```
 - 使用右外连接(显示所有成绩,如果没有名字匹配,显示空)
 
-```SQL
+```sql
 mysql>  SELECT `name`,stu.id,grade
     ->  FROM stu RIGHT JOIN exam
     ->  ON stu.id = exam.`id`;
@@ -1189,7 +1189,7 @@ mysql>  SELECT `name`,stu.id,grade
 ```
 - 现有需求列出部门名称和这些部门的员工名称和工作,同时显示出没有员工的部门
 
-```SQL
+```sql
 #使用右外连接完成(结果在输出的最后一行)
 mysql> SELECT dname,ename,job
     ->  FROM emp RIGHT JOIN dept
