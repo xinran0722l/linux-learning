@@ -6,3 +6,6 @@
 - [CDN](/computer_network/application_layer_cdn.md)
 - [Socket](/computer_network/socket.md)
 - [应用层小结](/computer_network/application_layer_end.md)
+- [传输层](/computer_network/transmission_layer_start.md)
+- [多路复用/解复用](/computer_network/transmission_layer_multiplexing_demultiplex.md)
+- [rdt传输原理](/computer_network/transimission_layer_rdt_principle.md)
