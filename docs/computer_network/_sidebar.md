@@ -10,3 +10,6 @@
 - [多路复用/解复用](/computer_network/transmission_layer_multiplexing_demultiplex.md)
 - [rdt传输原理](/computer_network/transimission_layer_rdt_principle.md)
 - [TCP](/computer_network/transimission_layer_tcp.md)
+- [网络层](/computer_network/network_layer.md)
+- [路由器组成](/computer_network/network_router_composition.md)
+- [IP协议](/computer_network/network_internet_protocol.md)
