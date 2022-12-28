@@ -1,5 +1,6 @@
 - [**首页**](/README.md)
-- [git命令](/questionOfTheDay/gitcommand.md)
+- [git](/questionOfTheDay/gitcommand.md)
+- [tmux](/questionOfTheDay/tmux.md)
 - [Python](/pyMD/)
 - [王道](/kingly_way_network/)
 - [network](/computer_network_from_the_top_down/)
