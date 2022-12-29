@@ -197,19 +197,47 @@ except :
   <语句块2>
 ```
 
+```python
+try:
+    print(name)
+except:
+    print("出现了异常")
+# 出现了异常
+
+try:
+    print(name)
+except Exception as e: #Exception表示全部异常
+    print("出错啦\n",e)
+# 出错啦
+#  name 'name' is not defined
+```
+
 ## 错误处理的高级使用
 ```py
 try :
   <语句块1>
 except :
   <语句块2>
-else :
+[else ]:
   <语句块3>
-finally :
+[finally] :
   <语句块4>
 
 - finally 对应语句块4一定执行
 - else 对应语句块3在不发生异常时执行
+```
+```python
+try:
+    print("name")
+except Exception as e:
+    print("Error")
+#    raise e
+else:
+    print("Not Error")
+# name
+# Not Error
+
+finally略
 ```
 
 # define function

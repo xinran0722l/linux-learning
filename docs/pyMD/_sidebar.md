@@ -6,3 +6,4 @@
 - [python解析](/pyMD/python_beautifulsoup_library.md)
 - [python正则](/pyMD/python_regular_expression.md)
 - [pythonExcel](/pyMD/python_excel.md)
+- [pyecharts](/pyMD/python_pyecharts.md)

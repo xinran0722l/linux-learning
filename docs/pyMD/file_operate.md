@@ -30,6 +30,84 @@
 | f.readline(size = -1) | 读入一行内容，如果给出参数，读入改行前size长度 | 
 | f.readlines(hint = -1) | 读入文件所有行，以每行为元素形成列表，如果给出参数，读入前hint行 | 
 
+```python
+现有文本路径: ~/Documents/txt.txt 
+内容如下:
+Make English as your working language. （让英语成为你的工作语言）
+Practice makes perfect. （熟能生巧）
+All experience comes from mistakes. （所有的经验都源于你犯过的错误）
+Don't be one of the leeches. （不要当伸手党）
+Either outstanding or out. （要么出众，要么出局）
+
+#打开文件--并查看文件类型
+f = open("/home/qinghuo/Documents/txt.txt","r+",encoding="utf-8")
+print(type(f))
+# <class '_io.TextIOWrapper'>
+
+#读取文件--read()
+print(f"读取10个字节： {f.read(10)}")
+print("#".center(30,"-"))
+print(f"读取全部字节： {f.read()}")
+# 读取10个字节： Make Engli
+# --------------#---------------
+# 读取全部字节： sh as your working language. （让英语成为你的工作语言）
+# Practice makes perfect. （熟能生巧）
+# All experience comes from mistakes. （所有的经验都源于你犯过的错误）
+# Don't be one of the leeches. （不要当伸手党）
+# Either outstanding or out. （要么出众，要么出局）
+
+#读取文件- readlines()
+lines = f.readlines()
+print(f"lines Object Type: {type(lines)}")
+print(f"lines Object Content: {lines}")
+# lines Object Type: <class 'list'>
+# lines Object Content: ['Make English as your working language. （让英语
+# 成为你的工作语言）\n', 'Practice makes perfect. （熟能生巧）\n', 'All experience comes from mistakes. （所有的经验都源于你犯过的错误）\n', "Don't be one of the leeches. （不要当伸手党）\n", 'Either outstanding or out. （要么出众，要么出局）\n']
+
+#读取文件- readline()
+line1 = f.readline()
+line2 = f.readline()
+line3 = f.readline()
+line4 = f.readline()
+print(f"one line is : {line1}")
+print(f"two line is : {line2}")
+print(f"three line is : {line3}")
+print(f"four line is : {line4}")
+# one line is : Make English as your working language. （让英语成为你的工
+# 作语言）
+#
+# two line is : Practice makes perfect. （熟能生巧）
+#
+# three line is : All experience comes from mistakes. （所有的经验都源于
+# 你犯过的错误）
+#
+# four line is : Don't be one of the leeches. （不要当伸手党）
+
+#遍历--此方法读出文件的每行，最后会有\n
+for line in f:
+    print(f"line content is: {line}")
+# line content is: Make English as your working language. （让英语成为你
+# 的工作语言）
+#
+# line content is: Practice makes perfect. （熟能生巧）
+#
+# line content is: All experience comes from mistakes. （所有的经验都源于
+# 你犯过的错误）
+#
+# line content is: Don't be one of the leeches. （不要当伸手党）
+#
+# line content is: Either outstanding or out. （要么出众，要么出局）
+```
+
+- with语法打开文件
+    * 通过```with open```打开的文件，可以自动关闭，无需close()
+
+```python
+with open("/home/qinghuo/Documents/txt.txt","r+",encoding="utf-8") as f:
+    print(f.readline())
+# Make English as your working language. （让英语成为你的工作语言）
+```
+
 ## 数据的文件写入
 | 文件内容的读取 | 描述 | 
 | :---: | :---: |
@@ -70,7 +148,7 @@ new_data = data.replace(oldStr,newStr)
 f.seek(0)   # 将文件指针指向行首
 f.truncate()    # 清空全部旧内容
 f.write(new_data)   # 写入新内容
-f.close()   # 关闭文件
+f.close()   # 关闭文件,会将保存在内存中的文件写入外存
 
 print(f"找到{oldStr}共{str_count}处，以全部替换为{newStr}...")
 ```

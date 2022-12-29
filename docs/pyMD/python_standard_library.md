@@ -1,8 +1,8 @@
 # python standard library   python 标准库 
 
-# random library
-## 伪随机数： 采用梅森旋转算法生成的伪随机序列中的元素
-## 随机数种子 -> 梅森旋转算法 -> 随机序列(随机序列是根据种子唯一确定的)
+## random library
+- 伪随机数： 采用梅森旋转算法生成的伪随机序列中的元素
+- 随机数种子 -> 梅森旋转算法 -> 随机序列(随机序列是根据种子唯一确定的)
 - random库主要用于生成随机数
 - random库包括两类函数，常用共8个
 ```py
@@ -11,8 +11,8 @@
 扩展随机数函数：randint() getrandbits() uniform()
                 randrange() choice() shuffle()
 ```
+#### 基本随机数函数
 
-## 基本随机数函数
 ```py
 seed(a = None) 
 # random.seed(10) 生成种子10对应的序列
@@ -22,7 +22,7 @@ random()
 # 生成一个[ 0.0 , 1.0 ) 之间的随即小数
 ```
 
-## 扩展随机数函数
+#### 扩展随机数函数
 ```py
 randint( a , b)
 # 生成一个 [ a, b ] 之间的整数
@@ -43,7 +43,21 @@ shuffle( seq )
 # 将序列 seq 中元素随机排列，返回打乱后的序列
 ```
 
-# time 库
+## json
+
+```python
+import json
+
+data = [{"name":"alex","age":88},{"name":"rose","age":22}]
+
+#将python数据转化为json数据
+data = json.dumps(data)
+
+#将json数据转为python数据
+data = json.loads(data)
+```
+
+## time 库
 ```py
 import time
 
@@ -63,7 +77,6 @@ time.strptime(str,tpl)
 # tpl 是格式化模板字符串，用来定义输入效果 
 # 和 time.strftime()  互逆
 
-
 time.perf_counter() 
 # 返回一个cpu级别的精确时间计数值，单位为秒
 # 由于这个计数值起点不确定，连续调用差值才有意义
@@ -72,6 +85,7 @@ time.perf_counter()
 ```
 
 ## string library
+
 ```py
 import string
 
@@ -85,7 +99,6 @@ import string
 '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
 >>> string.digits			# 打印数字
 '0123456789'
-
 ```
 
 ## sys
