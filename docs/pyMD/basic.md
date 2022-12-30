@@ -374,6 +374,15 @@ B = set("pypy123")  # {'1'.'p''2'.'3''y'}
 | ls.pop( i ) | 将列表ls中第i位置元素取出并删除 | 
 | ls.remove( x ) | 将列表ls中出现的第一个元素s删除 | 
 | ls.reverse() | 将列表ls中的元素反转 | 
+| ls.sort(key=func,reverse=bool) | key表示将ls中每个元素都传入函数，返回排序的依据<br/>reverse表示翻转 | 
+
+```python
+#根据数字大小进行排序
+ls = [["a",33],["b",66],["c",11]]
+r = ls.sort(key=lambda element: element[1])
+print(ls)
+[['c', 11], ['a', 33], ['b', 66]]
+```
 
 ## 序列类型应用场景
 - 元组用于元素不改变的应用场景，更多用于固定搭配的场景
