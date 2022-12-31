@@ -348,3 +348,85 @@ timeline.render()
 ![time_line](../images/python/chart/histogram_time_line.png)
 - 时间线(添加了自动播放和主题)
 ![time_line](../images/python/chart/histogram_time_line_auto_play_theme.png)
+
+#### GDP动态柱状图
+
+```python
+from pyecharts.charts import Bar,Timeline
+from pyecharts.options import LabelOpts,TitleOpts
+from pyecharts.globals import ThemeType
+#由于1960-2019全球GDP数据.csv文件非utf-8编码，所以需要对应编码打开(GB2312)
+f = open("../material/GDP/1960-2019全球GDP数据.csv","r",encoding="GB2312")
+#以列表形式读取全部数据
+f_data_list = f.readlines()
+f.close()
+#删除第一行，第一行不是绘图需要的数据
+f_data_list.pop(0)
+
+# 将从文件读取来的数据转换为字典存储，格式为：
+# { 年份: [ [国家, gdp], [国家,gdp], ......  ], 年份: [ [国家, gdp], [国家,gdp], ......  ], ...... }
+# { 1960: [ [美国, 123], [中国,321], ......  ], 1961: [ [美国, 123], [中国,321], ......  ], ...... }
+data_dict = {}
+
+for s in f_data_list:
+    line = s.split(",")
+    year = int(line[0]) #获得年
+    country = line[1]   #获得国家
+    gdp = float(line[2])    #获得gdp数值
+    data_ls = []
+    data_ls.append([country,gdp])
+    if not year in data_dict:
+        data_dict[year] = data_ls
+    else:
+        data_dict[year].append([country,gdp])
+
+
+#为了升序制作动态柱状图，取得字典的全部key作为list
+data_list = data_dict.keys()
+
+# 构建柱状图
+timeline = Timeline({"theme":ThemeType.LIGHT})
+
+for d in data_list:
+    #得到年份对应的全部国家
+    all_ls = data_dict[d]
+    #根据gdp对国降序排列
+    eight_ls = sorted(all_ls,key=lambda x: x[1],reverse=True)
+    country_ls = []
+    gdp_ls = []
+    #取出降序后的前8个国家和GDP,国家和GDP各为一个list
+    for i in range(8):
+        country_ls.append(eight_ls[i][0])
+        gdp_ls.append(eight_ls[i][1]/100000000) #这里除以亿和展示单位相关
+
+    # 使用Bar构建基础柱状图
+    bar = Bar()
+    # 这里翻转两个存储国家和GDP列表的数据是为了后续展示，详情见图片
+    country_ls.reverse()    # (1)
+    gdp_ls.reverse()        # (1)
+    # 添加x,y轴的数据
+    bar.add_xaxis(country_ls)
+    bar.add_yaxis("GDP(亿)",gdp_ls,label_opts=LabelOpts(position="right"))
+    #翻转y轴
+    bar.reversal_axis()
+    bar.set_global_opts(
+        title_opts=TitleOpts(title=f"{d}年全球前8GDP数据")
+    )
+    #在时间线内添加柱状图,示例代码中展示年份的“d”转为了str,此处未转str
+    timeline.add(bar,d)
+
+#设置时间线自动播放
+timeline.add_schema(
+    play_interval=1000,
+    is_timeline_show=True,
+    is_auto_play=True,
+    is_loop_play=True
+)
+
+timeline.render()
+```
+- 未翻转前8名list前(对应上面代码的(1)处)的效果
+![gdp_base](../images/python/chart/histogram_gdp_basic.png)
+- 翻转前8名list后(对应上面代码的(1)处)的效果
+![gdp_base](../images/python/chart/histogram_gdp_set.png)
+
