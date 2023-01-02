@@ -1,6 +1,7 @@
 - [首页](../README.md)
 - [python_basic](/pyMD/basic.md)
 - [oop](/pyMD/py_object_oriented_programming.md)
+- [数据分析](/pyMD/data_analysis.md)
 - [python标准库](/pyMD/python_standard_library.md)
 - [python文件](/pyMD/file_operate.md)
 - [python爬虫](/pyMD/python_requests_library.md)
