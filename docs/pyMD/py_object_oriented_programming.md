@@ -420,3 +420,102 @@ make_cool(gree_ac)
 # 格力空调制冷
 ```
 
+## 闭包
+```python
+def outer(logo):
+
+    def inner(msg):
+        print(f"<{logo}>{msg}<{logo}>")
+
+    return inner
+
+fn1 = outer("super man")
+fn1("jira")
+# <super man>jira<super man>
+```
+- 使用nonlocal关键字修改外部函数的值
+
+```python
+def outer(n1):
+
+    def inner(n2):
+        nonlocal n1
+        n1 += n2
+        print(n1)
+
+    return inner
+
+fn1 = outer(10)
+fn1(2)  # 12
+fn1(1)  # 13
+fn1(3)  # 16
+```
+***
+
+- 闭包小案例
+
+```python
+def atm(account=0):
+
+    def atm_calc(num,deposit=True):
+        nonlocal account
+        if deposit:
+            account += num
+            print(f"存款：{num},账户余额：{account}")
+        else:
+            account -= num
+            print(f"取款:{num}, 账户余额:{account}")
+
+    return atm_calc
+
+my = atm(100)
+my(100) # 存款：100,账户余额：200
+my(200) # 存款：200,账户余额：400
+my(100,False)   # 取款:100, 账户余额:300
+```
+
+## 装饰器
+
+装饰器也是一种闭包，其功能是```在不破坏目标函数原有的代码和功能的前提下，为目标函数增加新功能```
+
+- 基础写法
+
+```python
+def outer(func):
+    def inner():
+        print("睡觉了")
+        func()
+        print("起床了")
+
+    return inner
+
+def sleep():
+    import random
+    import time
+    print("睡眠中".center(20,"-"))
+    time.sleep(random.randint(1,3))
+
+fn = outer(sleep)
+fn()
+```
+
+- 语法糖
+
+```python
+def outer(func):
+    def inner():
+        print("睡觉了")
+        func()
+        print("起床了")
+
+    return inner
+
+@outer
+def sleep():
+    import random
+    import time
+    print("睡眠中".center(20,"-"))
+    time.sleep(random.randint(1,3))
+
+sleep()
+```
