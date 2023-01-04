@@ -5,6 +5,7 @@
 - [王道](/kingly_way_network/)
 - [network](/computer_network_from_the_top_down/)
 - [Linux](/Linux/)
+- [Shell](/shell/)
 - [OS](/operation_system/)
 - [Database](/Database/)
 - [Windows](/windows/)
