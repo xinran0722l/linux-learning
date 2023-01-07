@@ -1,99 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Document</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="Description">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  <link rel="stylesheet" title="dark" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/dark.css">
-  <link rel="stylesheet" title="vue"  href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-  <link rel="icon" href="/favicon.ico" />
-	</head>
-<body>
-  <nav class="demo-theme-preview">
-    <a data-theme="vue">vue.css</a>
-    <a data-theme="dark">dark.css</a>
- </nav>
+    <head>
+        <meta charset="UTF-8">
+        <title>Document</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <meta name="description" content="Description">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+        <link rel="stylesheet" title="dark" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/dark.css">
+        <link rel="stylesheet" title="vue"  href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+        <link rel="icon" href="/favicon.ico" />
+    </head>
+    <body>
+        <nav class="demo-theme-preview">
+            <a data-theme="vue">vue.css</a>
+            <a data-theme="dark">dark.css</a>
+        </nav>
 
 
-<!-- -->
-<style> .demo-theme-preview a { padding-right: 10px; } .demo-theme-preview a:hover { cursor: pointer; text-decoration: underline; } </style>
-	 <script>
-		const preview = document.querySelector('.demo-theme-preview'); 
-		const themes = document.querySelectorAll('[rel="stylesheet"]');
+        <!-- -->
+        <style> .demo-theme-preview a { padding-right: 10px; } .demo-theme-preview a:hover { cursor: pointer; text-decoration: underline; } </style>
+        <script>
+        const preview = document.querySelector('.demo-theme-preview'); 
+        const themes = document.querySelectorAll('[rel="stylesheet"]');
 
-		 preview.onclick = function (e) {
-         //   console.log(themes)
-			 const title = e.target.getAttribute('data-theme');
-        //  console.log('e.target ',e.target)
-        //    console.log('is title ',title)
+        preview.onclick = function (e) {
+            //   console.log(themes)
+            const title = e.target.getAttribute('data-theme');
+            //  console.log('e.target ',e.target)
+            //    console.log('is title ',title)
 
-			 themes.forEach(function (theme) { 
-      //      console.log('theme.disabled ',theme.disabled)
-    //        console.log('theme.title ',theme.title)
-  //          console.log('title ',title)
- //         theme.disabled = theme.title !== title;
- //             if (theme.title != title) theme.disabled = 'false'
-              theme.disabled = 'true'
-			}); 
-        themes.forEach( (theme) => {
-               if (theme.title == title){
-//                  theme.disabled = 'false'
-                  theme.removeAttribute('disabled')
-              } 
-          })
-		}; 
-	</script>
+            themes.forEach(function (theme) { 
+                //      console.log('theme.disabled ',theme.disabled)
+                //        console.log('theme.title ',theme.title)
+                //          console.log('title ',title)
+                //         theme.disabled = theme.title !== title;
+                //             if (theme.title != title) theme.disabled = 'false'
+                theme.disabled = 'true'
+            }); 
+            themes.forEach( (theme) => {
+                if (theme.title == title){
+                    //                  theme.disabled = 'false'
+                    theme.removeAttribute('disabled')
+                } 
+            })
+        }; 
+        </script>
 
- 
 
-  <div id="app"></div>
-  <script>
-    window.$docsify = {
-			// 完整配置参数
-			search: {
-				placeholder: '  搜索....',
-				},
-			loadSidebar: true,
-		  subMaxLevel: 4,
-			mergeNavbar: true,
-			topMargin: 90,
-			coverpage: true,
-			notFoundPage: true,
-			pagination: {
-          previousText: 'Previous',
-          nextText: 'Next',
-          crossChapter: true,
-          crossChapterText: true,
-			},
-			coverpage: ['/', '/README.md/'],
-			count:{
-				countable:true,
-				fontsize:'0.9em',
-				color:'rgb(90,90,90)',
-				language:'chinese'
-			}
-    }
-  </script>
-		<!--
-	<script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+
+        <div id="app"></div>
+        <script>
+        window.$docsify = {
+            // 完整配置参数
+            search: {
+                placeholder: '  搜索....',
+            },
+            loadSidebar: true,
+            subMaxLevel: 4,
+            mergeNavbar: true,
+            topMargin: 50,
+            coverpage: true,
+            notFoundPage: true,
+            pagination: {
+                previousText: 'Previous',
+                nextText: 'Next',
+                crossChapter: true,
+                crossChapterText: true,
+            },
+            coverpage: ['/', '/README.md/'],
+            count:{
+                countable:true,
+                fontsize:'0.9em',
+                color:'rgb(90,90,90)',
+                language:'chinese'
+            },
+            plugins: [
+                function (hook, vm) {
+                    hook.mounted(function () {
+                        // 添加网站运行时间
+                        let dom = Docsify.dom;
+                        let runTimeNode = dom.create('div');
+                        runTimeNode.className = 'runtime';
+                        runTimeNode.style =
+                            'color: #8590a6;max-width: 80%;margin: 0 auto 20px;padding: 0 15px 0 15px;';
+                        dom.appendTo(dom.find('.content'), runTimeNode);
+                    });
+                },
+            ],
+        }
+        </script>
+        <!--
+<script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
 -->
 
-	<!-- search -->
-	<script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
-	<script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
-	<!-- 分页导航 -->
-	<script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
-	<script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
-	<script src="//unpkg.com/docsify-count/dist/countable.js"></script>
-	<script src="//cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
-	<script src="//cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
-<!--	<script src="//cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-plsql.min.js"></script> -->
-	<script src="//cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
-	<script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+        <!-- search -->
+        <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+        <!-- 分页导航 -->
+        <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+        <script src="//unpkg.com/docsify-count/dist/countable.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+        <!--	<script src="//cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-plsql.min.js"></script> -->
+        <script src="//cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
 
+        <!-- 添加网站运行时间统计 -->
+        <script>
+        function siteTime() {
+            setTimeout(siteTime, 1000);
+            let seconds = 1000;
+            let minutes = seconds * 60;
+            let hours = minutes * 60;
+            let days = hours * 24;
+            let today = new Date();
+            let todayYear = today.getFullYear();
+            let todayMonth = today.getMonth() + 1;
+            let todayDate = today.getDate();
+            let todayHour = today.getHours();
+            let todayMinute = today.getMinutes();
+            let todaySecond = today.getSeconds();
 
+            let t1 = Date.UTC(2022, 06, 12, 0, 0, 0);
+            let t2 = Date.UTC(
+                todayYear,
+                todayMonth,
+                todayDate,
+                todayHour,
+                todayMinute,
+                todaySecond
+            );
+            let diff = t2 - t1;
+            let diffDays = Math.floor(diff / days);
+            let diffHours = Math.floor((diff - diffDays * days) / hours);
+            let diffMinutes = Math.floor(
+                (diff - diffDays * days - diffHours * hours) / minutes
+            );
+            let diffSeconds = Math.floor(
+                (diff - diffDays * days - diffHours * hours - diffMinutes * minutes) /
+                    seconds
+            );
+            Docsify.dom.find('.runtime').innerHTML =
+                'My Notes已运行 ' +
+                    diffDays +
+                    ' 天 ' +
+                    diffHours +
+                    ' 小时 ' +
+                    diffMinutes +
+                    ' 分 ' +
+                    diffSeconds +
+                    ' 秒';
+        }
+        // 先让网页加载完，否则 Docsify.dom.find('.runtime') == null
+        setTimeout(siteTime, 500);
+    </script> 
 
-</body>
+    </body>
 </html>
