@@ -13,3 +13,4 @@
 
     - [函数](/shell/shell_advanced/function.md)
     - [sed_gawk](/shell/shell_advanced/sed_gawk_basic.md)
+    - [正则](/shell/shell_advanced/regular_expression.md)
