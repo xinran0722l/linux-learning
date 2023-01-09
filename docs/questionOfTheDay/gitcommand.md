@@ -1,5 +1,5 @@
-##	git常用命令
-	
+#	git常用命令
+
 ## git对一个目录进行版本控制需要一下步骤
 
 - 进入要管理的文件夹
@@ -38,6 +38,23 @@ git reflog
 git reset --hard 版本号
 ```
 
+## 在 github 上提交 pluu request
+
+```bash
+首先将需要提交pr的仓库fork到自己账户下
+    例如:我们要提交pr的仓库为 shell/bash 这个仓库
+fork 之后，将我们fork的仓库clone至本地
+    我们的仓库以myrepo为例子，clone的地址应该是git@github.com:myrepo/bash.git
+在本地创建一个分支(分支名如：fix-README)，用于为了提交pr做修改，
+    修改成功后添加至本地暂存区，commit时添加修改信息
+之后将修改的分支push到我们fork后自己的仓库内
+    git push -u origin fix-README
+进入fork后，我们自己的仓库，push成功的话，此时会显示一条信息
+    根据信息提示，我们可以进行 pr 的流程(添加修改信息。。)
+    主要为推送给原仓库(shell/bash)
+    pr提交后等待源仓库审核即可
+```
+
 ##	分支相关
 ```bash
 git branch		# 查看分支
@@ -64,159 +81,159 @@ git push -u origin master    origin是远程源的源名，可以自定义；mas
 
 git clone 远程仓库地址		#克隆远程仓库(内部以实现 git remote add origin url)
 
-git checkout		#切换分支
-```
+    git checkout		#切换分支
+    ```
 
 
 ##	两地开发
--	在公司开发
+    -	在公司开发
 
-```bash
+    ```bash
 1.切换到dev分支，进行开发(参考上述工作流)
-	git checkout dev
+    git checkout dev
 2.把 master分支 合并到 dev (仅一次)
-	git merge master
-3.编辑代码
-4.提交代码
-	git add .
-	git commit -m 'xxxxx'
-	git push origin dev
-```
--	回家继续写代码
+    git merge master
+    3.编辑代码
+    4.提交代码
+    git add .
+    git commit -m 'xxxxx'
+    git push origin dev
+    ```
+    -	回家继续写代码
 
-```bash
-1.切换到dev分支，
-	git checkout dev
-2.拉取代码
-	git pull origin dev
-3.继续开发
-4.提交代码
-	git add .
-	git commit -m "xxxx"
-	git push origin dev
-```
--	在公司继续开发，步骤同上
+    ```bash
+    1.切换到dev分支，
+    git checkout dev
+    2.拉取代码
+    git pull origin dev
+    3.继续开发
+    4.提交代码
+    git add .
+    git commit -m "xxxx"
+    git push origin dev
+    ```
+    -	在公司继续开发，步骤同上
 
--	开发完毕，需要上线
+    -	开发完毕，需要上线
 
-```bash
-1.将dev分支合并到master，进行上线
-git checkout master
-git merge dev
-git push origin master
+    ```bash
+    1.将dev分支合并到master，进行上线
+    git checkout master
+    git merge dev
+    git push origin master
 
-2.把dev分支也推送到远程
-git checkout dev
-git merge master
-git pubash origin dev
-```
+    2.把dev分支也推送到远程
+    git checkout dev
+    git merge master
+    git pubash origin dev
+    ```
 
 ## 两地开发中，在公司的代码忘记推送到远程仓库
--	解决办法
--	在家开发其他功能
--	回到公司后，
--	git pull origin dev
--	如果有冲突，则进行解决
--	提交代码到暂存区。。。
+    -	解决办法
+    -	在家开发其他功能
+    -	回到公司后，
+    -	git pull origin dev
+    -	如果有冲突，则进行解决
+    -	提交代码到暂存区。。。
 
-```bash
-git pull origin dev		# 这个命令相当于下面两个命令结合
-git fetch origin dev
-git merge origin/dev
-```
+    ```bash
+    git pull origin dev		# 这个命令相当于下面两个命令结合
+    git fetch origin dev
+    git merge origin/dev
+    ```
 
 ## rebase(变基) 
--	简洁提交记录
--	注意：合并时不要合并已经push到远程的
+    -	简洁提交记录
+    -	注意：合并时不要合并已经push到远程的
 
-- git log 的图形记录展示
-```bash
-git log --graph --pretty=format:"%h %s"
-```
+    - git log 的图形记录展示
+    ```bash
+    git log --graph --pretty=format:"%h %s"
+    ```
 
 ##	beyond compare	解决merge时的冲突的app
--	1.在git中配置
-```bash
+    -	1.在git中配置
+    ```bash
 # --local 参数是只在当前项目生效
-git config --local merge.tool bc3
-git config --local mergetool.path "beyond compare的安装路径"
-git config --local mergetool.keepBackuup false		#解决冲突后不保留备份
-```
+    git config --local merge.tool bc3
+    git config --local mergetool.path "beyond compare的安装路径"
+    git config --local mergetool.keepBackuup false		#解决冲突后不保留备份
+    ```
 
--	2.应用beyond compare解决冲突
-```bash
-git mergetool
-```
+    -	2.应用beyond compare解决冲突
+    ```bash
+    git mergetool
+    ```
 
 ##	多人协同
--	master分支放生产代码
--	dev分支放开发代码
--	多人开发时，从dev分支开始 branch 出自己的分支
--	多人协同时，可以通过‘组织' 创建项目
--	而后给项目打上标签
-```bash
-git tag -a v1 -m "第一版"
+    -	master分支放生产代码
+    -	dev分支放开发代码
+    -	多人开发时，从dev分支开始 branch 出自己的分支
+    -	多人协同时，可以通过‘组织' 创建项目
+    -	而后给项目打上标签
+    ```bash
+    git tag -a v1 -m "第一版"
 
 git pubash orign --tags		#提交至远程仓库(github的分支下拉菜单上也会显示tag)
-```
--	开发前的步骤
+    ```
+    -	开发前的步骤
 
-```bash
-git branch -b dev		#	创建dev分支并进行切换
+    ```bash
+    git branch -b dev		#	创建dev分支并进行切换
 git pubash origin dev		#	将本地dev分支推送到远程(github分支下拉菜单显示2个分支，tag还是同一个)
-```
+    ```
 -	邀请开发人员加入组织(邮件形式)
--	组织内可以有很多项目，刚加入的成员，默认权限为只读
--	邀请刚加入组织的成员加入	需要开发的项目
--	成员从dev分支创建新分支,进行需要开发的功能
+    -	组织内可以有很多项目，刚加入的成员，默认权限为只读
+    -	邀请刚加入组织的成员加入	需要开发的项目
+    -	成员从dev分支创建新分支,进行需要开发的功能
 -	开发完成后，需要进行 Code review (代码检查) 
--	在github仓库页面，settings => Branches => 设置review的规则
--	开发人员github页面有New pull request 按钮，选择分支进行merge, 写入描述信息
--	组长github的Pull request中，有成员的 code review 请求， 点击 Add your review 验证
+    -	在github仓库页面，settings => Branches => 设置review的规则
+    -	开发人员github页面有New pull request 按钮，选择分支进行merge, 写入描述信息
+    -	组长github的Pull request中，有成员的 code review 请求， 点击 Add your review 验证
 
 
 ##	给开源项目贡献代码
 -	1.先Fork看中的仓库 (拷贝到自己的仓库)
--	2.在自己的仓库修改代码
+    -	2.在自己的仓库修改代码
 -	3.给源码作者提交申请(pull request)(选择分支，添加描述信息)
--	4.如果源码作者同意，会接受这次pull request
+    -	4.如果源码作者同意，会接受这次pull request
 
 
 ##	其他
 
-- 配置文件
+    - 配置文件
 
-```bash
+    ```bash
 #	当前项目配置文件: 当前项目/.git/config
-git config --local user.name 'test'
-git config --local user.email 'test@gmail.com'
+    git config --local user.name 'test'
+    git config --local user.email 'test@gmail.com'
 
 #	全局配置文件: ~/.gitconfig
-git config --global user.name 'test'
-git config --global user.email 'test@gmail.com'
+    git config --global user.name 'test'
+    git config --global user.email 'test@gmail.com'
 
 #	系统配置文件：	/etc/.gitconfig		需要root
-git config --system user.name 'test'
-git config --system user.email 'test@gmail.com'
+    git config --system user.name 'test'
+    git config --system user.email 'test@gmail.com'
 
 
 git remote add origin url		#	默认添加在本地配置文件中(相当于--local) 
-```
+    ```
 
 
 
 ## git忽略文件	.gitignore
 
-```bash
-test/		#忽略test/文件夹
-*.h			#忽略所有.h结尾的文件
-更多参考	https://github.com/github/gitignore
-```
+    ```bash
+    test/		#忽略test/文件夹
+    *.h			#忽略所有.h结尾的文件
+    更多参考	https://github.com/github/gitignore
+    ```
 
 
 ## 任务管理
 
-```bash
-issues: 文档，提问，bug汇总等		#可以给相应的问题打标签(例如bug,doc...)
-wiki: 项目文档
-```
+    ```bash
+    issues: 文档，提问，bug汇总等		#可以给相应的问题打标签(例如bug,doc...)
+    wiki: 项目文档
+    ```
