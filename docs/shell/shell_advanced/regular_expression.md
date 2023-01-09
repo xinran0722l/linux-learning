@@ -406,10 +406,653 @@ $
 
 ### 排除型字符组
 
+在正则表达式模式中，也可以反转字符组的作用。可以寻找组中没有的字符，而不是去寻找组中含有的字符。要这么做的话，只要在字符组的开头加个脱字符。
+
+```bash
+$ cat data6 
+This is a test of a line.
+The cat is sleeping.
+That is a very nice hat.
+This test is at line four.
+at ten o'clock we'll go home.
+$
+$ sed -n '/[^ch]at/p' data6
+This test is at line four.
+$ 
+```
+
+通过排除型字符组，正则表达式模式会匹配 c 或 h 之外的任何字符以及文本模式。由于空格字符属于这个范围，它通过了模式匹配。但即使是排除，字符组仍然必须匹配一个字符，所以以 at 开头的行仍然未能匹配模式。
+
+### 区间
+
+你可能注意到了，我之前演示邮编的例子的时候，必须在每个字符组中列出所有可能的数字，这实在有点麻烦。好在有一种便捷的方法可以让人免受这番劳苦。可以用单破折线符号在字符组中表示字符区间。只需要指定区间的第一个字符、单破折线以及区间的最后一个字符就行了。根据 Linux 系统采用的字符集，正则表达式会包括此区间内的任意字符。现在你可以通过指定数字区间来简化邮编的例子。
+
+```bash
+$ cat data8
+60633
+46201
+223001
+4353
+22203
+$ 
+$ sed -n '/^[0-9][0-9][0-9][0-9][0-9]$/p' data8
+60633
+46201
+22203
+$ 
+```
+
+这样可是节省了不少的键盘输入！每个字符组都会匹配 0~9 的任意数字。如果字母出现在数据中的任何位置，这个模式都将不成立。
+
+同样的方法也适用于字母。
+
+```bash
+$ cat data6
+This is a test of a line.
+The cat is sleeping.
+That is a very nice hat.
+This test is at line four.
+at ten o'clock we'll go home.
+$ 
+$ sed -n '/[c-h]at/p' data6
+The cat is sleeping.
+That is a very nice hat.
+$ 
+```
+
+新的模式[c-h]at 匹配了首字母在字母 c 和字母 h 之间的单词。这种情况下，只含有单词 at 的行将无法匹配该模式。
+
+还可以在单个字符组指定多个不连续的区间。
+
+```bash
+$ cat data6
+This is a test of a line.
+The cat is sleeping.
+That is a very nice hat.
+This test is at line four.
+at ten o'clock we'll go home.
+$ 
+$ sed -n '/[a-ch-m]at/p' data6
+The cat is sleeping.
+That is a very nice hat.
+$
+```
+
+该字符组允许区间 a\~c、h\~m 中的字母出现在 at 文本前，但不允许出现 d~g 的字母。
+
+```bash
+$ echo "I'm getting too fat." | sed -n '/[a-ch-m]at/p'
+$ 
+```
+
+### 特殊的字符组
+
+除了定义自己的字符组外，BRE 还包含了一些特殊的字符组，可用来匹配特定类型的字符。下面介绍了可用的 BRE 特殊的字符组。
+
+- [[:alpha:]] 匹配任意字母字符，不管是大写还是小写
+- [[:alnum:]] 匹配任意字母数字字符 09、AZ 或 a~z
+- [[:blank:]] 匹配空格或制表符
+- [[:digit:]] 匹配 0~9 之间的数字
+- [[:lower:]] 匹配小写字母字符 a~z
+- [[:upper:]] 匹配任意大写字母字符 A~Z
+- [[:print:]] 匹配任意可打印字符
+- [[:punct:]] 匹配标点符号
+- [[:space:]] 匹配任意空白字符：空格、制表符、NL、FF、VT 和 CR
+
+可以在正则表达式模式中将特殊字符组像普通字符组一样使用。
+
+```bash
+$ echo "abc" | sed -n '/[[:digit:]]/p'
+$ 
+$ echo "abc" | sed -n '/[[:alpha:]]/p'
+abc
+$ echo "abc123" | sed -n '/[[:digit:]]/p'
+abc123
+$ echo "This is, a test" | sed -n '/[[:punct:]]/p'
+This is, a test
+$ echo "This is a test" | sed -n '/[[:punct:]]/p'
+$ 
+```
+
+使用特殊字符组可以很方便地定义区间。如可以用[[:digit:]]来代替区间[0-9]。
+
+### 星号
+
+在字符后面放置星号表明该字符必须在匹配模式的文本中出现 0 次或多次。
+
+```bash
+$ echo "ik" | sed -n '/ie*k/p'
+ik
+$ echo "iek" | sed -n '/ie*k/p'
+iek
+$ echo "ieek" | sed -n '/ie*k/p'
+ieek
+$ echo "ieeek" | sed -n '/ie*k/p'
+ieeek
+$ echo "ieeeek" | sed -n '/ie*k/p'
+ieeeek
+$ 
+```
+
+这个模式符号广泛用于处理有常见拼写错误或在不同语言中有拼写变化的单词。举个例子，如果需要写个可能用在美式或英式英语中的脚本，可以这么写：
+
+```bash
+$ echo "I'm getting a color TV" | sed -n '/colou*r/p'
+I'm getting a color TV
+$ echo "I'm getting a colour TV" | sed -n '/colou*r/p'
+I'm getting a colour TV
+$ 
+```
+
+模式中的 u*表明字母 u 可能出现或不出现在匹配模式的文本中。类似地，如果你知道一个单词经常被拼错，你可以用星号来允许这种错误。
+
+```bash
+$ echo "I ate a potatoe with my lunch." | sed -n '/potatoe*/p'
+I ate a potatoe with my lunch.
+$ echo "I ate a potato with my lunch." | sed -n '/potatoe*/p'
+I ate a potato with my lunch.
+$ 
+```
+
+在可能出现的额外字母后面放个星号将允许接受拼错的单词。
+
+另一个方便的特性是将点号特殊字符和星号特殊字符组合起来。这个组合能够匹配任意数量的任意字符。它通常用在数据流中两个可能相邻或不相邻的文本字符串之间。
+
+```bash
+$ echo "This is a regular pattern expression" | sed -n '
+> /regular.*expression/p'
+This is a regular pattern expression
+$ 
+```
+
+可以使用这个模式轻松查找可能出现在数据流中文本行内任意位置的多个单词。
+
+星号还能用在字符组上。它允许指定可能在文本中出现多次的字符组或字符区间。
+
+```bash
+$ echo "bt" | sed -n '/b[ae]*t/p'
+bt
+$ echo "bat" | sed -n '/b[ae]*t/p'
+bat
+$ echo "bet" | sed -n '/b[ae]*t/p'
+bet
+$ echo "btt" | sed -n '/b[ae]*t/p'
+btt
+$ 
+$ echo "baat" | sed -n '/b[ae]*t/p'
+baat
+$ echo "baaeeet" | sed -n '/b[ae]*t/p'
+baaeeet
+$ echo "baeeaeeet" | sed -n '/b[ae]*t/p'
+baeeaeeet
+$ echo "baekeeet" | sed -n '/b[ae]*t/p'
+$ 
+```
+
+只要 a 和 e 字符以任何组合形式出现在 b 和 t 字符之间（就算完全不出现也行），模式就能够匹配。如果出现了字符组之外的字符，该模式匹配就会不成立。
 
 
+## 扩展正则表达式
 
+POSIX ERE 模式包括了一些可供 Linux 应用和工具使用的额外符号。gawk 程序能够识别 ERE 模式，但 sed 编辑器不能。
 
+> 记住，sed 编辑器和 gawk 程序的正则表达式引擎之间是有区别的。gawk 程序可以使用大多数扩展正则表达式模式符号，并且能提供一些额外过滤功能，而这些功能都是 sed 编辑器所不具备的。但正因为如此，gawk 程序在处理数据流时通常才比较慢。
+
+本节将介绍可用在 gawk 程序脚本中的较常见的 ERE 模式符号。
+
+### 问号
+
+问号类似于星号，不过有点细微的不同。问号表明前面的字符可以出现 0 次或 1 次，但只限于此。它不会匹配多次出现的字符。
+
+```bash
+$ echo "bt" | gawk '/be?t/{print $0}'
+bt
+$ echo "bet" | gawk '/be?t/{print $0}'
+bet
+$ echo "beet" | gawk '/be?t/{print $0}'
+$ 
+$ echo "beeet" | gawk '/be?t/{print $0}'
+$ 
+```
+
+如果字符 e 并未在文本中出现，或者它只在文本中出现了 1 次，那么模式会匹配。
+
+与星号一样，你可以将问号和字符组一起使用。
+
+```bash
+$ echo "bt" | gawk '/b[ae]?t/{print $0}'
+bt
+$ echo "bat" | gawk '/b[ae]?t/{print $0}'
+bat
+$ echo "bot" | gawk '/b[ae]?t/{print $0}'
+$ 
+$ echo "bet" | gawk '/b[ae]?t/{print $0}'
+bet
+$ echo "beat" | gawk '/b[ae]?t/{print $0}'
+$ 
+$ echo "baet" | gawk '/b[ae]?t/{print $0}'
+$ 
+$ echo "beet" | gawk '/b[ae]?t/{print $0}'
+$ 
+```
+
+如果字符组中的字符出现了 0 次或 1 次，模式匹配就成立。但如果两个字符都出现了，或者其中一个字符出现了 2 次，模式匹配就不成立。
+
+### 加号
+
+加号是类似于星号的另一个模式符号，但跟问号也有不同。加号表明前面的字符可以出现 1 次或多次，但必须至少出现 1 次。如果该字符没有出现，那么模式就不会匹配。
+
+```bash
+$ echo "beeet" | gawk '/be+t/{print $0}'
+beeet
+$ echo "beet" | gawk '/be+t/{print $0}'
+beet
+$ echo "bet" | gawk '/be+t/{print $0}'
+bet
+$ echo "bt" | gawk '/be+t/{print $0}'
+$ 
+```
+
+如果字符 e 没有出现，模式匹配就不成立。加号同样适用于字符组，与星号和问号的使用方式相同。
+
+```bash
+$ echo "bt" | gawk '/b[ae]+t/{print $0}'
+$ 
+$ echo "bat" | gawk '/b[ae]+t/{print $0}'
+bat
+$ echo "bet" | gawk '/b[ae]+t/{print $0}'
+bet
+$ echo "beat" | gawk '/b[ae]+t/{print $0}'
+beat
+$ echo "baet" | gawk '/b[ae]+t/{print $0}'
+baet
+$ echo "beeat" | gawk '/b[ae]+t/{print $0}'
+beeat
+$ 
+```
+
+这次如果字符组中定义的任一字符出现了，文本就会匹配指定的模式。
+
+### 使用花括号
+
+ERE 中的花括号允许你为可重复的正则表达式指定一个上限。这通常称为```间隔```（interval）。可以用两种格式来指定区间。
+
+- 正则表达式准确出现 m 次。
+- m, n：正则表达式至少出现 m 次，至多 n 次。
+
+这个特性可以精确调整字符或字符集在模式中具体出现的次数。
+
+> 如果你的 gawk 版本过老，gawk 程序不会识别正则表达式间隔。必须额外指定 gawk 程序的--re- interval 命令行选项才能识别正则表达式间隔。
+
+这里有个使用简单的单值间隔的例子。
+
+```bash
+$ echo "bt" | gawk '/be{1}t/{print $0}'
+$ 
+$ echo "bet" | gawk '/be{1}t/{print $0}'
+bet
+$ echo "best" | gawk '/be{1}t/{print $0}'
+$ 
+```
+
+通过指定间隔为 1，限定了该字符在匹配模式的字符串中出现的次数。如果该字符出现多次，模式匹配就不成立。
+
+很多时候，同时指定下限和上限也很方便。
+
+```bash
+$ echo "bt" | gawk '/be{1,2}t/{print $0}'
+$ 
+$ echo "bet" | gawk '/be{1,2}t/{print $0}'
+bet
+$ echo "beet" | gawk '/be{1,2}t/{print $0}'
+beet
+$ echo "beeet" | gawk '/be{1,2}t/{print $0}'
+$ 
+```
+
+在这个例子中，字符 e 可以出现 1 次或 2 次，这样模式就能匹配；否则，模式无法匹配
+
+```bash
+$ echo "bt" | gawk '/b[ae]{1,2}t/{print $0}'
+$ 
+$ echo "bat" | gawk '/b[ae]{1,2}t/{print $0}'
+bat
+$ echo "bet" | gawk '/b[ae]{1,2}t/{print $0}'
+bet
+$ echo "beat" | gawk '/b[ae]{1,2}t/{print $0}'
+beat
+$ echo "beet" | gawk '/b[ae]{1,2}t/{print $0}'
+beet
+$ echo "beeat" | gawk '/b[ae]{1,2}t/{print $0}'
+$ 
+$ echo "baeet" | gawk '/b[ae]{1,2}t/{print $0}'
+$ 
+$ echo "baeeat" | gawk '/b[ae]{1,2}t/{print $0}'
+$ 
+```
+
+如果字母 a 或 e 在文本模式中只出现了 1~2 次，则正则表达式模式匹配；否则，模式匹配失败。
+
+### 管道字符
+
+管道符号允许你在检查数据流时，用逻辑 OR 方式指定正则表达式引擎要用的两个或多个模式。如果任何一个模式匹配了数据流文本，文本就通过测试。如果没有模式匹配，则数据流文本匹配失败。
+
+使用管道符号的格式如下：
+
+```bash
+expr1|expr2|...
+```
+
+这里有个例子:
+
+```bash
+$ echo "The cat is asleep" | gawk '/cat|dog/{print $0}'
+The cat is asleep
+$ echo "The dog is asleep" | gawk '/cat|dog/{print $0}'
+The dog is asleep
+$ echo "The sheep is asleep" | gawk '/cat|dog/{print $0}'
+$ 
+```
+
+这个例子会在数据流中查找正则表达式 cat 或 dog。正则表达式和管道符号之间不能有空格，否则它们也会被认为是正则表达式模式的一部分。
+
+管道符号两侧的正则表达式可以采用任何正则表达式模式（包括字符组）来定义文本。
+
+```bash
+$ echo "He has a hat." | gawk '/[ch]at|dog/{print $0}'
+He has a hat.
+$ 
+```
+
+这个例子会匹配数据流文本中的 cat、hat 或 dog。
+
+### 圆括号分组
+
+正则表达式模式也可以用圆括号进行分组。当你将正则表达式模式分组时，该组会被视为一个标准字符。可以像对普通字符一样给该组使用特殊字符。举个例子：
+
+```bash
+$ echo "Sat" | gawk '/Sat(urday)?/{print $0}'
+Sat
+$ 
+$ echo "Saturday" | gawk '/Sat(urday)?/{print $0}'
+Saturday
+$ 
+```
+
+结尾的 urday 分组以及问号，使得模式能够匹配完整的 Saturday 或缩写 Sat。
+
+将分组和管道符号一起使用来创建可能的模式匹配组是很常见的做法。
+
+```bash
+$ echo "cat" | gawk '/(c|b)a(b|t)/{print $0}'
+cat
+$ echo "cab" | gawk '/(c|b)a(b|t)/{print $0}'
+cab
+$ echo "bat" | gawk '/(c|b)a(b|t)/{print $0}'
+bat
+$ echo "bab" | gawk '/(c|b)a(b|t)/{print $0}'
+bab
+$ echo "tab" | gawk '/(c|b)a(b|t)/{print $0}'
+$ 
+$ echo "tac" | gawk '/(c|b)a(b|t)/{print $0}'
+$ 
+```
+
+模式(c|b)a(b|t)会匹配第一组中字母的任意组合以及第二组中字母的任意组合
+
+## 正则表达式实战
+
+现在你已经了解了使用正则表达式模式的规则和一些简单的例子，该把理论用于实践了。随后几节将会演示 shell 脚本中常见的一些正则表达式例子。
+
+### 目录文件计数
+
+让我们先看一个 shell 脚本，它会对 PATH 环境变量中定义的目录里的可执行文件进行计数。要这么做的话，首先你得将 PATH 变量解析成单独的目录名。前面介绍过如何显示 PATH 环境变量。
+
+```bash
+$ echo $PATH
+/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl
+```
+
+根据 Linux 系统上应用程序所处的位置，PATH 环境变量会有所不同。关键是要意识到 PATH 中的每个路径由冒号分隔。要获取可在脚本中使用的目录列表，就必须用空格来替换冒号。现在你会发现 sed 编辑器用一条简单表达式就能完成替换工作。
+
+```bash
+$ echo $PATH | sed 's/:/ /g'
+/usr/local/sbin /usr/local/bin /usr/bin /usr/lib/jvm/default/bin /usr/bin/site_perl /usr/bin/vendor_perl /usr/bin/core_perl
+$
+```
+
+分离出目录之后，你就可以使用标准 for 语句中来遍历每个目录。
+
+```bash
+mypath=$(echo $PATH | sed 's/:/ /g')
+for directory in $mypath
+do
+    ...
+done
+```
+
+一旦获得了单个目录，就可以用 ls 命令来列出每个目录中的文件，并用另一个 for 语句来遍历每个文件，为文件计数器增值。
+
+这个脚本的最终版本如下。
+
+```bash
+$ cat countfiles.sh 
+#!/bin/bash
+# count number of files in your PATH
+mypath=$(echo $PATH | sed 's/:/ /g')
+count=0
+for directory in $mypath
+do
+    check=$(ls $directory)
+    for item in $check
+    do
+        count=$[ $count + 1 ]
+    done
+    echo "$directory - $count"
+    count=0
+done
+$ 
+```
+
+```bash
+$ ./countfiles.sh 
+/usr/local/sbin - 0
+/usr/local/bin - 11
+/usr/bin - 2163
+/usr/lib/jvm/default/bin - 58
+/usr/bin/site_perl - 0
+/usr/bin/vendor_perl - 0
+/usr/bin/core_perl - 29
+$ 
+```
+
+现在我们开始体会到正则表达式背后的强大之处了！
+
+### 验证电话号码
+
+前面的例子演示了在处理数据时，如何将简单的正则表达式和 sed 配合使用来替换数据流中的字符。正则表达式通常用于验证数据，确保脚本中数据格式的正确性。
+
+一个常见的数据验证应用就是检查电话号码。数据输入表单通常会要求填入电话号码，而用户输入格式错误的电话号码是常有的事。在美国，电话号码有几种常见的形式：
+
+```bash
+(123)456-7890
+(123) 456-7890
+123-456-7890
+123.456.7890
+```
+
+这样用户在表单中输入的电话号码就有 4 种可能。正则表达式必须足够强大，才能处理每一种情况。
+
+在构建正则表达式时，最好从左手边开始，然后构建用来匹配可能遇到的字符的模式。在这个例子中，电话号码中可能有也可能没有左圆括号。这可以用如下模式来匹配：
+
+```bash
+^\(?
+```
+
+脱字符用来表明数据的开始。由于左圆括号是个特殊字符，因此必须将它转义成普通字符。问号表明左圆括号可能出现，也可能不出现。
+
+紧接着就是 3 位区号。在美国，区号以数字 2 开始（没有以数字 0 或 1 开始的区号），最大可到 9。要匹配区号，可以用如下模式。
+
+```bash
+[2-9][0-9]{2}
+```
+
+这要求第一个字符是 2~9 的数字，后跟任意两位数字。在区号后面，收尾的右圆括号可能存在，也可能不存在。
+
+```bash
+\)?
+```
+
+在区号后，存在如下可能：有一个空格，没有空格，有一条单破折线或一个点。你可以对它们使用管道符号，并用圆括号进行分组。
+
+```bash
+(| |-|\.)
+```
+
+第一个管道符号紧跟在左圆括号后，用来匹配没有空格的情形。你必须将点字符转义，否则它会被解释成可匹配任意字符。
+
+紧接着是 3 位电话交换机号码。这里没什么需要特别注意的。
+
+```bash
+[0-9]{3}
+```
+
+在电话交换机号码之后，你必须匹配一个空格、一条单破折线或一个点。
+
+```bash
+( |-|\.)
+```
+
+最后，必须在字符串尾部匹配 4 位本地电话分机号。
+
+```bash
+[0-9]{4}$
+```
+
+完整的模式如下。
+
+```bash
+^\(?[2-9][0-9]{2}\)?(| |-|\.)[0-9]{3}( |-|\.)[0-9]{4}$
+```
+
+你可以在 gawk 程序中用这个正则表达式模式来过滤掉不符合格式的电话号码。现在你只需要在 gawk 程序中创建一个使用该正则表达式的简单脚本，然后用这个脚本来过滤你的电话薄。脚本如下,可以将电话号码重定向到脚本来处理。
+
+```bash
+$ cat isphone.sh 
+#!/bin/bash
+# script to filter out bad phone numbers
+gawk '/^\(?[2-9][0-9]{2}\)?(| |-|\.)[0-9]{3}( |-|\.)[0-9]{4}$/{print $0}'
+$ 
+```
+
+```bash
+$ echo "317-555-1234" | ./isphone.sh 
+317-555-1234
+$ echo "000-555-1234" | ./isphone.sh 
+$ 
+$ echo "312 555-1234" | ./isphone.sh 
+312 555-1234
+$
+```
+
+或者也可以将含有电话号码的整个文件重定向到脚本来过滤掉无效的号码。
+
+```bash
+$ cat phonelist | ./isphone.sh 
+212-555-1234
+(317)555-1234
+(202) 555-9876
+234.123.4567
+$ 
+```
+
+只有匹配该正则表达式模式的有效电话号码才会出现。
+
+### 解析邮件地址
+
+如今这个时代，电子邮件地址已经成为一种重要的通信方式。验证邮件地址成为脚本程序员的一个不小的挑战，因为邮件地址的形式实在是千奇百怪。邮件地址的基本格式为：
+
+```bash
+username@hostname
+```
+
+username 值可用字母数字字符以及以下特殊字符：
+
+- 点号
+- 单破折线
+- 加号
+- 下划线
+
+在有效的邮件用户名中，这些字符可能以任意组合形式出现。邮件地址的 hostname 部分由一个或多个域名和一个服务器名组成。服务器名和域名也必须遵照严格的命名规则，只允许字母数字字符以及以下特殊字符：
+
+- 点号
+- 下划线
+
+服务器名和域名都用点分隔，先指定服务器名，紧接着指定子域名，最后是后面不带点号的顶级域名。
+
+顶级域名的数量在过去十分有限，正则表达式模式编写者会尝试将它们都加到验证模式中。然而遗憾的是，随着互联网的发展，可用的顶级域名也增多了。这种方法已经不再可行。
+
+从左侧开始构建这个正则表达式模式。我们知道，用户名中可以有多个有效字符。这个相当容易。
+
+```bash
+^([a-zA-Z0-9_\-\.\+]+)@
+```
+
+这个分组指定了用户名中允许的字符，加号表明必须有至少一个字符。下一个字符很明显是@，没什么意外的。
+
+hostname 模式使用同样的方法来匹配服务器名和子域名。
+
+```bash
+([a-zA-Z0-9_\-\.]+)
+```
+
+这个模式可以匹配文本:
+
+```bash
+server
+server.subdomain
+server.subdomain.subdomain
+```
+
+对于顶级域名，有一些特殊的规则。顶级域名只能是字母字符，必须不少于二个字符（国家或地区代码中使用），并且长度上不得超过五个字符。下面就是顶级域名用的正则表达式模式。
+
+```bash
+\.([a-zA-Z]{2,5}$)
+```
+
+将整个模式放在一起会生成如下模式。
+
+```bash
+^([a-zA-Z0-9_\-\.\+]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$
+```
+
+这个模式会从数据列表中过滤掉那些格式不正确的邮件地址。现在可以创建脚本来实现这个正则表达式了。
+
+```bash
+$ cat isemail.sh 
+#!/bin/bash
+# script to filter out email
+gawk '/^([a-zA-Z0-9_\-\.\+]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/{print $0}'
+$
+$ echo "rich@here.now" | ./isemail.sh 
+rich@here.now
+$ echo "rich@here.now." | ./isemail.sh 
+$ 
+$ echo "rich@here.n" | ./isemail.sh 
+$ 
+$ echo "rich@here-now" | ./isemail.sh 
+$ 
+$ echo "rich.blum@here.now" | ./isemail.sh 
+rich.blum@here.now
+$ echo "rich_blum@here.now" | ./isemail.sh 
+rich_blum@here.now
+$ echo "rich/bulm@here.now" | ./isemail.sh 
+$ 
+$ echo "rich#blum@here.now" | ./isemail.sh 
+$ 
+$ echo "rich*blum@here.now" | ./isemail.sh 
+$ 
+```
 
 
 

@@ -1,5 +1,15 @@
 - [首页](../README.md)
 
+- Linux 命令行
+
+    - [初识 Linux Shell](/shell/commandLine/shell_first_view)
+    - [更多实用命令](/shell/commandLine/more_command)
+    - [理解 Shell](/shell/commandLine/understand_shell)
+    - [Linux 环境变量](/shell/commandLine/linux_env)
+    - [理解 Linux 文件权限](/shell/commandLine/security)
+    - [管理文件系统](/shell/commandLine/file_system)
+
+
 - 基础 Shell 编程
 
     - [基础](/shell/shell_basic/basic.md)
