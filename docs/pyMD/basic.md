@@ -1,4 +1,4 @@
-## python basic
+# python basic
 - ```python``` 的编辑器叫做 ```pycharm```
 - ```python```中貌似没有基础类型，全是对象类型，其中 数字， 字符串， 元组都是不可变对象
 
@@ -13,7 +13,6 @@
 int() # 将参数转为 int
 float() # 将参数转为 小数
 complex() # 将参数转为 复数
-
 str() # 将参数转为 字符串
 ```
 
@@ -38,7 +37,7 @@ print("今天是 %s 年，%s 月，%s 日" % (year, month, day))
 | %d | 将内容转为整数，放入占位位置 | 
 | %f | 将内容转为浮点数，放入占位位置 | 
 
-#### 字符串--数字精度
+### 字符串--数字精度
 
 - m.n用来控制数据的宽度和精度
     * m 控制宽度，要求是数字，设置的宽度小于数字自身不生效
@@ -57,7 +56,7 @@ print("数字3.1415,宽度不限制,小数限制2,结果是：%.1f" % num2)
 #数字3.1415,宽度不限制,小数限制2,结果是：3.1
 ```
 
-## string formating <-> 字符串格式化
+### string formating <-> 字符串格式化
 - ```python```中格式化字符串输出和```c```语言很相似,多个参数也是如此
 - 模板字符串.format(分割参数)
 ```py
@@ -76,7 +75,7 @@ print( "{1}:计算机{0}的cpu占用率为{2}%".format("2012-1-1","@@",10))
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | 引导符号 | 用于填充的单个字符 | <左对齐 >右对齐 ^居中 | 槽输出宽度 | 数字的千位分隔符 | 小数精度或string长度 | 整数类型b c d o x X 浮点数类型 e,E,f,$ 
 
-## 字符串的索引和切片
+### 字符串的索引和切片
 
 - ```python```中，字符串有```正向递增序号```和 ```反向递减序号```
 - ```string[M:N:K]```, M缺失表示```至开头```, N缺失表示```至结尾```,K表示```步长```
@@ -101,7 +100,7 @@ print(str[::-1])
 # ["d","l","r","o","W","o","l","l","e","H"]
 ```
 
-## string function
+### string function
 ```py
 s = "123一二三"
 len(s)    # 返回 s 的长度，其值为6
@@ -117,7 +116,7 @@ for i in range(12):
   print(chr(9800 + i),"\t", end="") #其中9800表示白羊座的图标
 ```
 
-## string method
+### string method
 ```py
 str.lower() # 返回字符串的副本，全部字符小写 "AbcDe".lower() -> "abcde"
 str.upper() # 返回字符串的副本，全部字符大写 "AbcDe".upper() -> "ABCDE"
@@ -160,7 +159,7 @@ for i in range(9):
   print("\t")
 ```
 
-## 循环的高级用法
+### 循环的高级用法
 ```py
 for c in s:
   <语句块>
@@ -179,16 +178,214 @@ round(0.1+0.2, 1) === 0.3
 # True
 ```
 
+## 生成器
+
+通过列表生成式，我们可以直接创建一个列表。但是，受到内存限制，列表容量肯定是有限的。而且，创建一个包含100万个元素的列表，不仅占用很大的存储空间，如果我们仅仅需要访问前面几个元素，那后面绝大多数元素占用的空间都白白浪费了。
+
+所以，如果列表元素可以按照某种算法推算出来，那我们是否可以在循环的过程中不断推算出后续的元素呢？这样就不必创建完整的list，从而节省大量的空间。在Python中，这种一边循环一边计算的机制，称为生成器：generator。
+
+要创建一个```generator```，有很多种方法。第一种方法很简单，只要把一个列表生成式的```[]```改成```()```，就创建了一个```generator```：
+
+```python
+>>> L = [x * x for x in range(10)]
+>>> L
+[0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+>>> g = (x * x for x in range(10))
+>>> g
+<generator object <genexpr> at 0x1022ef630>
+```
+
+创建L和g的区别仅在于最外层的[]和()，L是一个list，而g是一个generator。
+
+我们可以直接打印出list的每一个元素，但我们怎么打印出generator的每一个元素呢？
+
+如果要一个一个打印出来，可以通过next()函数获得generator的下一个返回值：
+
+```python
+>>> next(g)
+0
+>>> next(g)
+1
+>>> next(g)
+4
+>>> next(g)
+9
+>>> next(g)
+16
+...
+64
+>>> next(g)
+81
+>>> next(g)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+StopIteration
+```
+
+generator保存的是算法，每次调用```next(g)```，就计算出```g```的下一个元素的值，直到计算到最后一个元素，没有更多的元素时，抛出```StopIteration```的错误。
+
+上面这种不断调用next(g)实在是太变态了，正确的方法是使用for循环，因为generator也是可迭代对象：
+
+```python
+>>> g = (x * x for x in range(10))
+>>> for n in g:
+...     print(n)
+... 
+0
+1
+4
+9
+16
+25
+36
+49
+64
+81
+```
+
+创建了一个generator后，基本上永远不会调用next()，而是通过for循环来迭代它，并且不需要关心StopIteration的错误
+
+generator非常强大。如果推算的算法比较复杂，用类似列表生成式的for循环无法实现的时候，还可以用函数来实现。
+
+比如，著名的斐波拉契数列（Fibonacci），除第一个和第二个数外，任意一个数都可由前两个数相加得到：1, 1, 2, 3, 5, 8, 13, 21, 34, ...
+
+斐波拉契数列用列表生成式写不出来，但是，用函数把它打印出来却很容易：
+
+```python
+def fib(max):
+    n, a, b = 0, 0, 1
+    while n < max:
+        print(b)
+        a, b = b, a + b
+        n = n + 1
+    return 'done'
+```
+
+上面的函数可以输出斐波那契数列的前N个数：
+
+```python
+>>> fib(6)
+1
+1
+2
+3
+5
+8
+'done'
+```
+
+fib函数实际上是定义了斐波拉契数列的推算规则，可以从第一个元素开始，推算出后续任意的元素，这种逻辑其实非常类似generator。
+
+上面的函数和```generator```仅一步之遥。要把fib函数变成```generator```函数，只需要把```print(b)```改为```yield b```就可以了：
+
+```python
+def fib(max):
+    n, a, b = 0, 0, 1
+    while n < max:
+        yield b
+        a, b = b, a + b
+        n = n + 1
+    return 'done'
+```
+
+这就是定义```generator```的另一种方法。如果一个函数定义中包含```yield```关键字，那么这个函数就不再是一个普通函数，而是一个```generator```函数，调用一个```generator```函数将返回一个```generator```：
+
+```python
+>>> f = fib(6)
+>>> f
+<generator object fib at 0x104feaaa0>
+```
+
+这里，最难理解的就是generator函数和普通函数的执行流程不一样。普通函数是顺序执行，遇到return语句或者最后一行函数语句就返回。而变成generator的函数，在每次调用next()的时候执行，遇到yield语句返回，再次执行时从上次返回的yield语句处继续执行。
+
+举个简单的例子，定义一个generator函数，依次返回数字1，3，5：
+
+```python
+def odd():
+    print('step 1')
+    yield 1
+    print('step 2')
+    yield(3)
+    print('step 3')
+    yield(5)
+```
+
+调用该generator函数时，首先要生成一个generator对象，然后用next()函数不断获得下一个返回值：
+
+```python
+>>> o = odd()
+>>> next(o)
+step 1
+1
+>>> next(o)
+step 2
+3
+>>> next(o)
+step 3
+5
+>>> next(o)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+StopIteration
+```
+
+可以看到，odd不是普通函数，而是generator函数，在执行过程中，遇到yield就中断，下次又继续执行。执行3次yield后，已经没有yield可以执行了，所以，第4次调用next(o)就报错。
+
+> 调用generator函数会创建一个generator对象，多次调用generator函数会创建多个相互独立的generator。
+
+在循环过程中不断调用yield，就会不断中断。当然要给循环设置一个条件来退出循环，不然就会产生一个无限数列出来
+
+同样的，把函数改成generator函数后，我们基本上从来不会用next()来获取下一个返回值，而是直接使用for循环来迭代：
+
+```python
+>>> for n in fib(6):
+...     print(n)
+...
+1
+1
+2
+3
+5
+8
+```
+
+但是用for循环调用generator时，发现拿不到generator的return语句的返回值。如果想要拿到返回值，必须捕获StopIteration错误，返回值包含在StopIteration的value中：
+
+```python
+>>> g = fib(6)
+>>> while True:
+...     try:
+...         x = next(g)
+...         print('g:', x)
+...     except StopIteration as e:
+...         print('Generator return value:', e.value)
+...         break
+...
+g: 1
+g: 1
+g: 2
+g: 3
+g: 5
+g: 8
+Generator return value: done
+```
+
+generator是非常强大的工具，在Python中，可以简单地把列表生成式改成generator，也可以通过函数实现复杂逻辑的generator。
+
+要理解generator的工作原理，它是在for循环的过程中不断计算出下一个元素，并在适当的条件结束for循环。对于函数改成的generator来说，遇到return语句或者执行到函数体最后一行语句，就是结束generator的指令，for循环随之结束。
 
 
-# 三元运算
+
+
+## 三元运算
+
 ```py
 <表达式1> if <条件> else <表达式2>
 guess = eval(input())
 print("猜{}了".format("对" if guess == 99 else "错"))
 ```
 
-# 错误处理
+## 错误处理
 ```py
 try :
   <语句块1>
@@ -212,7 +409,8 @@ except Exception as e: #Exception表示全部异常
 #  name 'name' is not defined
 ```
 
-## 错误处理的高级使用
+### 错误处理的高级使用
+
 ```py
 try :
   <语句块1>
@@ -240,9 +438,9 @@ else:
 finally略
 ```
 
-# define function
+## define function
 
-## 函数的返回值
+### 函数的返回值
 ```py
 def fact( n , m = 1):
   s = 1
@@ -258,7 +456,7 @@ print( a, b, c )
 725760 10 5
 ```
 
-## 指定参数(关键参数)
+### 指定参数(关键参数)
 - 一般给函数传参要按照顺序，不按顺序就需要指定参数
   * 但是定义时，关键参数必须放在位置参数之后
 
@@ -270,14 +468,14 @@ def sayHi(name,age,like="Python"):
 sayHi("Jack",like="C++",age=16)
 ```
 
-## lambda function
+### lambda function
 - lambda 函数是一种匿名函数，使用关键字lambda定义
 - 函数名是返回结果， lambda函数用于定义简单的，能够在一行内表示的函数
 ```py
 <函数名> = lambda <参数> : <表达式>
 ```
 
-## 可变参数
+### 可变参数
 ```py
 def fn( a , *argc ):
   <函数体>
@@ -289,7 +487,7 @@ def fn(**kwargs):
 ```
 
 
-#  set  集合
+##  set  集合
 - 集合用```{}```表示，元素之间用都好分隔
 - 集合中每个元素唯一，不存在相同的元素
 - 集合元素之间无序
@@ -298,7 +496,7 @@ A = { "python", 123, ("python", 123, ) }  # 使用{}创建集合
 B = set("pypy123")  # {'1'.'p''2'.'3''y'}
 ```
 
-## 集合操作符
+### 集合操作符
 | 集合操作符 | 描述 | 
 | :---: | :---: |
 | S | T | 返回一个新集合，包括在集合S和T中的所有元素| 
@@ -308,7 +506,7 @@ B = set("pypy123")  # {'1'.'p''2'.'3''y'}
 | S <= T 或 S < T | 返回True/False，判断S和T的子集关系| 
 | S >= T 或 S > T | 返回True/False，判断S和T的包含关系| 
 
-## 集合操作符 | 描述 | 
+### 集合操作符 | 描述 | 
 | 集合方法 | 描述 | 
 | :---: | :---: |
 | S.add( x ) | 如果x不在集合S中，将x增加到S | 
@@ -323,7 +521,7 @@ B = set("pypy123")  # {'1'.'p''2'.'3''y'}
 | set( S ) | 将其他类型变量x转变为集合类型 | 
 
 
-# 序列
+## 序列
 
 | 序列操作符 | 描述 | 
 | :---: | :---: |
@@ -334,7 +532,7 @@ B = set("pypy123")  # {'1'.'p''2'.'3''y'}
 | s[i] | 索引，返回s中的第i个元素，i是序列的序号 | 
 | s[ i : j] 或 s[ i : j : k ] | 切片，返回序列s中第i到j以k为步长的元素子序列 | 
 
-## 序列通用函数和方法
+### 序列通用函数和方法
 | 函数和方法 | 描述 | 
 | :---: | :---: |
 | len(s) | 返回序列s的长度 | 
@@ -343,17 +541,121 @@ B = set("pypy123")  # {'1'.'p''2'.'3''y'}
 | s.index(x) 或 s.index(x,i,j) | 返回序列s从i开始到j位置中第一次出现元素x的位置 | 
 | s.count(x) | 返回序列s中出现x的总次数 | 
 
-# 元组
+如何判断一个对象是可迭代对象呢？方法是通过collections.abc模块的Iterable类型判断：
+
+```python
+>>> from collections.abc import Iterable
+>>> isinstance('abc', Iterable) # str是否可迭代
+True
+>>> isinstance([1,2,3], Iterable) # list是否可迭代
+True
+>>> isinstance(123, Iterable) # 整数是否可迭代
+False
+```
+
+如果要对list实现类似Java那样的下标循环怎么办？Python内置的```enumerate```函数可以把一个list变成索引-元素对，这样就可以在for循环中同时迭代索引和元素本身：
+
+```python
+>>> for i, value in enumerate(['A', 'B', 'C']):
+...     print(i, value)
+...
+0 A
+1 B
+2 C
+```
+
+## 元组
 - 元组是一种序列类型，一旦创建就不能被修改
 - 使用小括号()或tuple()创建，元素间用逗号分割
 - 可以使用或不使用小括号
 
-# 列表
+## 列表
 - 列表是一种序列类型，创建后可以随意被修改
 - 使用方括号[]或list()创建，元素间用逗号分隔
 - 列表中各元素类型可以不同，无长度限制
 
-##  列表类型操作函数和方法
+### 列表生成式
+
+列表生成式即*List Comprehensions*，是Python内置的非常简单却强大的可以用来创建list的生成式。
+
+举个例子，要生成```list [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]```可以用```list(range(1, 11))```：
+
+```python
+>>> list(range(1, 11))
+[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+```
+
+但如果要生成```[1x1, 2x2, 3x3, ..., 10x10]```怎么做？方法一是循环：
+
+```python
+>>> L = []
+>>> for x in range(1, 11):
+...    L.append(x * x)
+...
+>>> L
+[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+```
+
+但是循环太繁琐，而列表生成式则可以用一行语句代替循环生成上面的list：
+
+```python
+>>> [x * x for x in range(1, 11)]
+[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+```
+
+写列表生成式时，把要生成的元素```x * x```放到前面，后面跟for循环，就可以把list创建出来，十分有用，多写几次，很快就可以熟悉这种语法。
+
+for循环后面还可以加上if判断，这样我们就可以筛选出仅偶数的平方：
+
+```python
+>>> [x * x for x in range(1, 11) if x % 2 == 0]
+[4, 16, 36, 64, 100]
+```
+
+还可以使用两层循环，可以生成全排列：
+
+```python
+>>> [m + n for m in 'ABC' for n in 'XYZ']
+['AX', 'AY', 'AZ', 'BX', 'BY', 'BZ', 'CX', 'CY', 'CZ']
+```
+
+运用列表生成式，可以写出非常简洁的代码。例如，列出当前目录下的所有文件和目录名，可以通过一行代码实现：
+
+```python
+>>> import os # 导入os模块，模块的概念后面讲到
+>>> [d for d in os.listdir('.')] # os.listdir可以列出文件和目录
+['.emacs.d', '.ssh', '.Trash', 'Adlm', 'Applications', 'Desktop', 'Documents', 'Downloads', 'Library', 'Movies', 'Music', 'Pictures', 'Public', 'VirtualBox VMs', 'Workspace', 'XCode']
+```
+
+for循环其实可以同时使用两个甚至多个变量，比如dict的items()可以同时迭代key和value：
+
+```python
+>>> d = {'x': 'A', 'y': 'B', 'z': 'C' }
+>>> for k, v in d.items():
+...     print(k, '=', v)
+...
+y = B
+x = A
+z = C
+```
+
+因此，列表生成式也可以使用两个变量来生成list：
+
+```python
+>>> d = {'x': 'A', 'y': 'B', 'z': 'C' }
+>>> [k + '=' + v for k, v in d.items()]
+['y=B', 'x=A', 'z=C']
+```
+
+最后把一个list中所有的字符串变成小写：
+
+```python
+>>> L = ['Hello', 'World', 'IBM', 'Apple']
+>>> [s.lower() for s in L]
+['hello', 'world', 'ibm', 'apple']
+```
+
+###  列表类型操作函数和方法
 | 函数 | 描述 | 
 | :---: | :---: |
 | ls[i] = x | 替换列表ls第i元素为x | 
@@ -384,19 +686,19 @@ print(ls)
 [['c', 11], ['a', 33], ['b', 66]]
 ```
 
-## 序列类型应用场景
+### 序列类型应用场景
 - 元组用于元素不改变的应用场景，更多用于固定搭配的场景
 - 如果不希望数据被程序改变，转换成```元组类型```
 - 列表更加灵活，他是最常用的序列类型
 - 最主要作用：表示一组有序数据，进而操作他们
 
 
-# 字典
+## 字典
 - 键值对： 键是数据索引的扩展
 - 字典是键值对的集合，键值对之间无序
 - 采用大括号{}或dict()创建，键值对用冒号：表示
 
-## dict function or method
+### dict function or method
 | 函数或方法 | 描述 | 
 | :---: | :---: |
 | del d[ k ] | 删除字典d中键k对应的数据值 | 
@@ -405,7 +707,7 @@ print(ls)
 | d.values() | 返回字典d中所有值的信息 | 
 | d.items() | 返回字典d中所有键值对的信息 | 
 
-## 列表类型操作函数和方法
+### 列表类型操作函数和方法
 | 函数或方法 | 描述 | 
 | :---: | :---: |
 | d.get( k, <default>) | 键k存在，则返回相应值，不在则返回<default>值 | 

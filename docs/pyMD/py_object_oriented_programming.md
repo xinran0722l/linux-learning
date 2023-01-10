@@ -173,7 +173,7 @@ p.call_by_5g()
 # 5g通话
 ```
 
-- 多继承(一个子类继承多个父类)
+### 多继承(一个子类继承多个父类)
     * 多继承中，如果多个父类的属性相同，则```左边的父类优先级最高```
 
 ```python
@@ -218,7 +218,7 @@ p.control() # 红外遥控启动
 # p.call_by_5g()
 ```
 
-## 复写父类成员
+### 复写父类成员
 
 ```python
 class Phone:
@@ -273,7 +273,201 @@ print(p.producer)
 # Meta
 ```
 
-#### 类型注解
+
+## 获取对象信息
+
+当我们得到一个对象的引用时，如何知道这个对象的类型，有哪些方法？
+
+### isinstance 判断是否为某个class的实例
+
+```python
+isinstance( object, classinfo )
+# object 实例对象
+# classinfo 直接或间接类名、基本类型或由它们组成的元组
+```
+
+```python
+print(isinstance(p,Phone))      #True
+print(isinstance(p,(Phone,MyPhone)))    #True
+```
+
+由于 p 的 class (MyPhone) 继承自 Phone,所以上面个为True
+
+但是反过来确不行
+
+```bash
+p = MyPhone()
+print(isinstance(ip,MyPhone))   # False
+```
+
+能用 type() 判断的基本类型也可以用 isinstance() 判断
+
+```python
+print(isinstance(123,int))
+print(isinstance("abc",str))
+print(isinstance([],list))
+True
+True
+True
+```
+
+### dir() 获得对象的所有属性和方法
+
+```python
+print( dir("abc") )
+print("#".center(20,"-"))
+print( dir(123) )
+print("#".center(20,"-"))
+print( dir([]) )
+['__add__', '__class__', '__contains__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__getnewargs__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__iter__', '__le__', '__len__', '__lt__', '__mod__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__rmod__', '__rmul__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', 'capitalize', 'casefold', 'center', 'count', 'encode', 'endswith', 'expandtabs', 'find', 'format', 'format_map', 'index', 'isalnum', 'isalpha', 'isascii', 'isdecimal', 'isdigit', 'isidentifier', 'islower', 'isnumeric', 'isprintable', 'isspace', 'istitle', 'isupper', 'join', 'ljust', 'lower', 'lstrip', 'maketrans', 'partition', 'removeprefix', 'removesuffix', 'replace', 'rfind', 'rindex', 'rjust', 'rpartition', 'rsplit', 'rstrip', 'split', 'splitlines', 'startswith', 'strip', 'swapcase', 'title', 'translate', 'upper', 'zfill']
+---------#----------
+['__abs__', '__add__', '__and__', '__bool__', '__ceil__', '__class__', '__delattr__', '__dir__', '__divmod__', '__doc__', '__eq__', '__float__', '__floor__', '__floordiv__', '__format__', '__ge__', '__getattribute__', '__getnewargs__', '__gt__', '__hash__', '__index__', '__init__', '__init_subclass__', '__int__', '__invert__', '__le__', '__lshift__', '__lt__', '__mod__', '__mul__', '__ne__', '__neg__', '__new__', '__or__', '__pos__', '__pow__', '__radd__', '__rand__', '__rdivmod__', '__reduce__', '__reduce_ex__', '__repr__', '__rfloordiv__', '__rlshift__', '__rmod__', '__rmul__', '__ror__', '__round__', '__rpow__', '__rrshift__', '__rshift__', '__rsub__', '__rtruediv__', '__rxor__', '__setattr__', '__sizeof__', '__str__', '__sub__', '__subclasshook__', '__truediv__', '__trunc__', '__xor__', 'as_integer_ratio', 'bit_count', 'bit_length', 'conjugate', 'denominator', 'from_bytes', 'imag', 'numerator', 'real', 'to_bytes']
+---------#----------
+['__add__', '__class__', '__class_getitem__', '__contains__', '__delattr__', '__delitem__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__iadd__', '__imul__', '__init__', '__init_subclass__', '__iter__', '__le__', '__len__', '__lt__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rmul__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', 'append', 'clear', 'copy', 'count', 'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
+```
+
+类似```__xxx__```的属性和方法在Python中都是有特殊用途的，比如```__len__```方法返回长度。在Python中，如果你调用```len()```函数试图获取一个对象的长度，实际上，在```len()```函数内部，它自动去调用该对象的```__len__()```方法，所以，下面的代码是等价的：
+
+```python
+len("abc")  # 3
+"abc".__len__() # 3
+```
+
+仅仅把属性和方法列出来是不够的，配合```getattr()```、```setattr()```以及```hasattr()```，我们可以直接操作一个对象的状态：
+
+```python
+class MyObject(object):
+    def __init__(self):
+        self.x = 9
+
+    def power(self):
+        return self.x * self.x
+
+obj = MyObject()
+
+# obj上有属性 x 吗？
+print(hasattr(obj,"x")) # True
+# obj上有属性 y 吗？
+print(hasattr(obj,"y")) # False
+# 为obj设置一个属性 y
+print(setattr(obj,"y",19))  # None
+# obj上有属性 y 吗？
+print(hasattr(obj,"y")) # True
+# 获取 obj 的属性 y
+print(getattr(obj,'y')) # 19
+print(obj.y)    # 19
+```
+
+如果试图获取不存在的属性，会抛出AttributeError错误
+
+```python
+getattr(obj,'z')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: 'MyObject' object has no attribute 'z'
+```
+
+可以传入一个 default 参数，如果属性不存在，就返回默认值
+
+```python
+print(getattr(obj,'z',"Not Found 404"))     # Not Found 404
+print(hasattr(obj,'z')) # False
+```
+
+也可以获得对象的方法
+
+```python
+# 有属性 power 吗
+print(hasattr(obj,"power")) # True
+# 获得属性 power
+print(getattr(obj,'power')) # <bound method MyObject.power of <__main__.MyObject object at 0x7fd2de057fd0>>
+# 获得属性 power, 并赋值给 fn
+fn = getattr(obj,"power")
+# fn 指向 obj.power
+print(fn)   # <bound method MyObject.power of <__main__.MyObject object at 0x7fd2de057fd0>>
+# 调用 fn
+print(fn()) # 81
+```
+
+## 实例属性和类属性
+
+由于Python是动态语言，根据类创建的实例可以任意绑定属性。给实例绑定属性的方法是通过实例变量，或者通过self变量：
+
+```python
+class Stu(object):
+
+    def __init__(self,name):
+        self.name = name
+
+s = Stu("Bob")
+print(s)    # <__main__.Stu object at 0x7f96a6457fd0>
+print(s.name) # Bob
+print(dir(s))
+# ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'name']
+s.core = 90
+print(s.core) # 90
+print(dir(s))
+# ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'core', 'name']
+```
+
+如果 Stu 类本身需要绑定一个属性，可以直接在 class 类中定义属性，这种属性是类属性，归 Stu 类所有
+
+```python
+class Stu(object):
+    name = "Student"
+```
+
+当我们定义了一个类属性后，这个属性虽然归类所有，但类的所有实例都可以访问到。来测试一下：
+
+```python
+class Stu(object):
+
+    name = "Student"
+
+    def __init__(self,age):
+        self.age = age
+
+s = Stu(33)
+print(s.name)   # Student
+print(Stu.name) # Student
+s.name = "Rich"
+print(s.name)   # Rich
+print(Stu.name) # Student
+del s.name
+print(Stu.name) # Student
+```
+
+从上面的例子可以看出，在编写程序的时候，千万不要对实例属性和类属性使用相同的名字，因为相同名称的实例属性将屏蔽掉类属性，但是当你删除实例属性后，再使用相同的名称，访问到的将是类属性。
+
+***
+
+练习：为了统计学生人数，可以给Student类增加一个类属性，每创建一个实例，该属性自动增加：
+
+```python
+class Student(object):
+    count = 0
+
+    def __init__(self, name):
+        self.name = name
+        Student.count += 1
+
+    def getCount(self):
+        return self.count
+
+for i in range(3):
+    s = Student(f"I'm student the {i} ")
+    print(s.name)
+
+print(s.getCount()) # 此处直接调用 s.count亦可
+# I'm student the 0 
+# I'm student the 1 
+# I'm student the 2 
+# 3
+```
+
+
+
+## 类型注解
 
 类型注解是通过IDE对数据类型进行显式说明
 ```python 
@@ -519,3 +713,5 @@ def sleep():
 
 sleep()
 ```
+
+
