@@ -2,6 +2,7 @@
 - [python_basic](/pyMD/basic.md)
 - [oop](/pyMD/py_object_oriented_programming.md)
 - [oop高级](/pyMD/oop_Advanced.md)
+- [异步IO](/pyMD/sync_io.md)
 - [设计模式](/pyMD/design_patterns.md)
 - [多线程](/pyMD/threading.md)
 - [数据分析](/pyMD/data_analysis.md)

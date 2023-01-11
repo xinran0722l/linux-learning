@@ -374,8 +374,95 @@ generator是非常强大的工具，在Python中，可以简单地把列表生�
 
 要理解generator的工作原理，它是在for循环的过程中不断计算出下一个元素，并在适当的条件结束for循环。对于函数改成的generator来说，遇到return语句或者执行到函数体最后一行语句，就是结束generator的指令，for循环随之结束。
 
+## 迭代器
 
+我们已经知道，可以直接作用于for循环的数据类型有以下几种：
 
+- 一类是集合数据类型，如list、tuple、dict、set、str等；
+- 一类是```generator```，包括生成器和带```yield```的```generator function```。
+
+这些可以直接作用于for循环的对象统称为可迭代对象：```Iterable```。
+
+可以使用```isinstance()```判断一个对象是否是```Iterable```对象：
+
+```python
+>>> from collections.abc import Iterable
+>>> isinstance([], Iterable)
+True
+>>> isinstance({}, Iterable)
+True
+>>> isinstance('abc', Iterable)
+True
+>>> isinstance((x for x in range(10)), Iterable)
+True
+>>> isinstance(100, Iterable)
+False
+```
+
+而生成器不但可以作用于for循环，还可以被```next()```函数不断调用并返回下一个值，直到最后抛出```StopIteration```错误表示无法继续返回下一个值了。
+
+可以被```next()```函数调用并不断返回下一个值的对象称为迭代器：```Iterator```。
+
+可以使用```isinstance()```判断一个对象是否是```Iterator```对象：
+
+```python
+>>> from collections.abc import Iterator
+>>> isinstance((x for x in range(10)), Iterator)
+True
+>>> isinstance([], Iterator)
+False
+>>> isinstance({}, Iterator)
+False
+>>> isinstance('abc', Iterator)
+False
+```
+
+生成器都是```Iterator```对象，但*list、dict、str虽然是Iterable*，却```不是Iterator```。
+
+把*list、dict、str等Iterable* ```变成Iterator```可以使用```iter()```函数：
+
+```python
+>>> isinstance(iter([]), Iterator)
+True
+>>> isinstance(iter('abc'), Iterator)
+True
+```
+
+为什么list、dict、str等数据类型不是Iterator？
+
+这是因为Python的```Iterator```对象表示的是一个```数据流```，```Iterator```对象可以被```next()```函数调用并不断返回下一个数据，直到没有数据时抛出```StopIteration```错误。可以把这个数据流看做是一个有序序列，但我们却不能提前知道序列的长度，只能不断通过```next()```函数实现按需计算下一个数据，所以```Iterator```的计算是惰性的，只有在需要返回下一个数据时它才会计算。
+
+```Iterator```甚至可以表示一个无限大的数据流，例如全体自然数。而使用*list是永远不可能存储全体自然数的*。
+
+***
+
+凡是可作用于for循环的对象都是```Iterable```类型；
+
+凡是可作用于```next()```函数的对象都是```Iterator```类型，它们表示一个惰性计算的序列；
+
+集合数据类型如*list、dict、str等是Iterable*但不是```Iterator```，不过可以通过```iter()```函数获得一个```Iterator```对象。
+
+Python的for循环本质上就是通过不断调用next()函数实现的，例如：
+
+```python
+for x in [1, 2, 3, 4, 5]:
+    pass
+```
+
+实际上完全等价于：
+
+```python
+# 首先获得Iterator对象:
+it = iter([1, 2, 3, 4, 5])
+# 循环:
+while True:
+    try:
+        # 获得下一个值:
+        x = next(it)
+    except StopIteration:
+        # 遇到StopIteration就退出循环
+        break
+```
 
 ## 三元运算
 
@@ -476,6 +563,7 @@ sayHi("Jack",like="C++",age=16)
 ```
 
 ### 可变参数
+
 ```py
 def fn( a , *argc ):
   <函数体>
@@ -486,6 +574,421 @@ def fn(**kwargs):
 # **kwargs 表示为一个dict(字典)
 ```
 
+## 高阶函数 Higher-order function
+
+### map()
+
+```map()```函数接收两个参数，一个是函数，一个是```Iterable```，map将传入的函数依次作用到序列的每个元素，并把结果作为新的```Iterator```返回。
+
+我们有一个函数f(x)=x2，要把这个函数作用在一个list [1, 2, 3, 4, 5, 6, 7, 8, 9]上，就可以用map()实现如下：
+
+```python
+            f(x) = x * x
+
+                  │
+                  │
+  ┌───┬───┬───┬───┼───┬───┬───┬───┐
+  │   │   │   │   │   │   │   │   │
+  ▼   ▼   ▼   ▼   ▼   ▼   ▼   ▼   ▼
+
+[ 1   2   3   4   5   6   7   8   9 ]
+
+  │   │   │   │   │   │   │   │   │
+  │   │   │   │   │   │   │   │   │
+  ▼   ▼   ▼   ▼   ▼   ▼   ▼   ▼   ▼
+
+[ 1   4   9  16  25  36  49  64  81 ]
+```
+
+现在，我们用Python代码实现：
+
+```python
+>>> def f(x):
+...     return x * x
+...
+>>> r = map(f, [1, 2, 3, 4, 5, 6, 7, 8, 9])
+>>> list(r)
+[1, 4, 9, 16, 25, 36, 49, 64, 81]
+```
+
+```map()```传入的第一个参数是```f```，即函数对象本身。由于结果```r是一个Iterator```，```Iterator是惰性序列```，因此通过```list()```函数让它把整个序列都计算出来并返回一个```list```。
+
+map()作为高阶函数，事实上它把运算规则抽象了，因此，我们不但可以计算简单的f(x)=x2，还可以计算任意复杂的函数，比如，把这个list所有数字转为字符串：
+
+```python
+>>> list(map(str, [1, 2, 3, 4, 5, 6, 7, 8, 9]))
+['1', '2', '3', '4', '5', '6', '7', '8', '9']
+```
+
+### reduce()
+
+再看```reduce```的用法。```reduce```把一个函数作用在一个```序列[x1, x2, x3, ...]```上，这个函数必须接收两个参数，```reduce```把结果继续和序列的下一个元素做累积计算，其效果就是：
+
+```python
+reduce(f, [x1, x2, x3, x4]) = f(f(f(x1, x2), x3), x4)
+```
+
+比方说对一个序列求和，就可以用reduce实现：
+
+```python
+>>> from functools import reduce
+>>> def add(x, y):
+...     return x + y
+...
+>>> reduce(add, [1, 3, 5, 7, 9])
+25
+```
+
+当然求和运算可以直接用Python```内建函数sum()```，没必要动用reduce。
+
+但是如果要把序列[1, 3, 5, 7, 9]变换成整数13579，reduce就可以派上用场：
+
+```python
+>>> from functools import reduce
+>>> def fn(x, y):
+...     return x * 10 + y
+...
+>>> reduce(fn, [1, 3, 5, 7, 9])
+13579
+```
+
+这个例子本身没多大用处，但是，如果考虑到字符串str也是一个序列，对上面的例子稍加改动，配合map()，我们就可以写出把str转换为int的函数：
+
+```python
+>>> from functools import reduce
+>>> def fn(x, y):
+...     return x * 10 + y
+...
+>>> def char2num(s):
+...     digits = {'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9}
+...     return digits[s]
+...
+>>> reduce(fn, map(char2num, '13579'))
+13579
+```
+
+整理成一个str2int的函数就是：
+
+```python
+from functools import reduce
+
+DIGITS = {'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9}
+
+def str2int(s):
+    def fn(x, y):
+        return x * 10 + y
+    def char2num(s):
+        return DIGITS[s]
+    return reduce(fn, map(char2num, s))
+```
+
+还可以用lambda函数进一步简化成：
+
+```python
+from functools import reduce
+
+DIGITS = {'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9}
+
+def char2num(s):
+    return DIGITS[s]
+
+def str2int(s):
+    return reduce(lambda x, y: x * 10 + y, map(char2num, s))
+```
+
+也就是说，假设Python没有提供int()函数，你完全可以自己写一个把字符串转化为整数的函数，而且只需要几行代码！
+
+### filter()
+
+Python内建的```filter()```函数用于过滤序列。
+
+和```map()```类似，```filter()```也接收一个函数和一个序列。和map()不同的是，```filter()```把传入的函数依次作用于每个元素，然后根据返回值是```True```还是```False```决定保留还是丢弃该元素。
+
+例如，在一个list中，删掉偶数，只保留奇数，可以这么写：
+
+```python
+def is_odd(n):
+    return n % 2 == 1
+
+list(filter(is_odd, [1, 2, 4, 5, 6, 9, 10, 15]))
+# 结果: [1, 5, 9, 15]
+```
+
+把一个序列中的空字符串删掉，可以这么写：
+
+```python
+def not_empty(s):
+    return s and s.strip()
+
+list(filter(not_empty, ['A', '', 'B', None, 'C', '  ']))
+# 结果: ['A', 'B', 'C']
+```
+
+注意到```filter()函数返回的是一个Iterator```，也就是一个```惰性序列```，所以要强迫```filter()```完成计算结果，需要用```list()```函数获得所有结果并返回list。
+
+***
+
+用filter求素数
+
+计算素数的一个方法是埃氏筛法，它的算法理解起来非常简单：
+
+首先，列出从2开始的所有自然数，构造一个序列：
+
+2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...
+
+取序列的第一个数2，它一定是素数，然后用2把序列的2的倍数筛掉：
+
+3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...
+
+取新序列的第一个数3，它一定是素数，然后用3把序列的3的倍数筛掉：
+
+5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...
+
+取新序列的第一个数5，然后用5把序列的5的倍数筛掉：
+
+7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...
+
+不断筛下去，就可以得到所有的素数。
+
+用Python来实现这个算法，可以先构造一个从3开始的奇数序列：
+
+```python
+def _odd_iter():
+    n = 1
+    while True:
+        n = n + 2
+        yield n
+```
+
+注意这是一个生成器，并且是一个无限序列。
+
+然后定义一个筛选函数：
+
+```python
+def _not_divisible(n):
+    return lambda x: x % n > 0
+```
+
+最后，定义一个生成器，不断返回下一个素数：
+
+```python
+def primes():
+    yield 2
+    it = _odd_iter() # 初始序列
+    while True:
+        n = next(it) # 返回序列的第一个数
+        yield n
+        it = filter(_not_divisible(n), it) # 构造新序列
+```
+
+这个生成器先返回第一个素数2，然后，利用filter()不断产生筛选后的新的序列。
+
+由于```primes()```也是一个无限序列，所以调用时需要设置一个退出循环的条件
+
+```python
+# 打印1000以内的素数:
+for n in primes():
+    if n < 1000:
+        print(n)
+    else:
+        break
+```
+
+注意到```Iterator是惰性计算的序列```，所以我们可以用Python表示“全体自然数”，“全体素数”这样的序列，而代码非常简洁。
+
+### sorted()
+
+排序也是在程序中经常用到的算法。无论使用冒泡排序还是快速排序，排序的核心是比较两个元素的大小。如果是数字，我们可以直接比较，但如果是字符串或者两个```dict```呢？直接比较数学上的大小是没有意义的，因此，比较的过程必须通过函数抽象出来。
+
+Python内置的```sorted()```函数就可以对```list```进行排序：
+
+```python
+>>> sorted([36, 5, -12, 9, -21])
+[-21, -12, 5, 9, 36]
+```
+
+```sorted()```函数也是一个高阶函数，它还可以接收一个```key```函数来实现自定义的排序，例如按绝对值大小排序：
+
+```python
+>>> sorted([36, 5, -12, 9, -21], key=abs)
+[5, 9, -12, -21, 36]
+```
+
+```key```指定的函数将作用于```list```的每一个元素上，并根据```key```函数返回的结果进行排序。对比原始的list和经过```key=abs```处理过的list：
+
+```python
+list = [36, 5, -12, 9, -21]
+keys = [36, 5,  12, 9,  21]
+```
+
+然后```sorted()```函数按照```keys```进行排序，并按照对应关系返回list相应的元素：
+
+```python
+keys排序结果 => [5, 9,  12,  21, 36]
+                |  |    |    |   |
+最终结果     => [5, 9, -12, -21, 36]
+```
+我们再看一个字符串排序的例子：
+
+```python
+>>> sorted(['bob', 'about', 'Zoo', 'Credit'])
+['Credit', 'Zoo', 'about', 'bob']
+```
+
+默认情况下，对字符串排序，是按照ASCII的大小比较的，由于```'Z' < 'a'```，结果，大写字母Z会排在小写字母a的前面。
+
+现在，我们提出排序应该忽略大小写，按照字母序排序。要实现这个算法，不必对现有代码大加改动，只要我们能用一个```key```函数把字符串映射为忽略大小写排序即可。忽略大小写来比较两个字符串，实际上就是先把字符串都变成大写（或者都变成小写），再比较。
+
+这样，我们给sorted传入key函数，即可实现忽略大小写的排序：
+
+```python
+>>> sorted(['bob', 'about', 'Zoo', 'Credit'], key=str.lower)
+['about', 'bob', 'Credit', 'Zoo']
+```
+
+要进行反向排序，不必改动key函数，可以传入第三个参数```reverse=True```：
+
+```python
+>>> sorted(['bob', 'about', 'Zoo', 'Credit'], key=str.lower, reverse=True)
+['Zoo', 'Credit', 'bob', 'about']
+```
+
+### 装饰器
+
+由于函数也是一个对象，而且函数对象可以被赋值给变量，所以，通过变量也能调用该函数。
+
+```python
+>>> def now():
+...     print('2015-3-25')
+...
+>>> f = now
+>>> f()
+2015-3-25
+```
+
+函数对象有一个```__name__```属性（注意：是前后各两个下划线），可以拿到函数的名字：
+
+```python
+>>> now.__name__
+'now'
+>>> f.__name__
+'now'
+```
+
+现在，假设我们要增强```now()```函数的功能，比如，在函数调用前后自动打印日志，但又不希望修改```now()```函数的定义，这种在```代码运行期间动态增加功能的方式，称之为“装饰器”```（Decorator）。
+
+本质上，decorator就是一个返回函数的高阶函数。所以，我们要定义一个能打印日志的decorator，可以定义如下：
+
+```python
+def log(func):
+    def wrapper(*args, **kw):
+        print('call %s():' % func.__name__)
+        return func(*args, **kw)
+    return wrapper
+```
+
+观察上面的```log```，因为它是一个decorator，所以接受一个函数作为参数，并返回一个函数。我们要借助Python的@语法，把decorator置于函数的定义处：
+
+```python
+@log
+def now():
+    print('2015-3-25')
+```
+
+调用```now()```函数，不仅会运行```now()```函数本身，还会在运行```now()```函数前打印一行日志：
+
+```python
+>>> now()
+call now():
+2015-3-25
+```
+
+把```@log```放到```now()```函数的定义处，相当于执行了语句：
+
+```python
+now = log(now)
+```
+
+由于```log()```是一个decorator，返回一个函数，所以，原来的```now()```函数仍然存在，只是现在同名的```now```变量指向了新的函数，于是调用```now()```将执行新函数，即在```log()```函数中返回的```wrapper()```函数。
+
+```wrapper()```函数的参数定义是```(*args, **kw)```，因此，```wrapper()```函数可以接受任意参数的调用。在```wrapper()```函数内，首先打印日志，再紧接着调用原始函数。
+
+如果```decorator```本身需要传入参数，那就需要编写一个返回```decorator```的高阶函数，写出来会更复杂。比如，要自定义log的文本：
+
+```python
+def log(text):
+    def decorator(func):
+        def wrapper(*args, **kw):
+            print('%s %s():' % (text, func.__name__))
+            return func(*args, **kw)
+        return wrapper
+    return decorator
+```
+
+这个3层嵌套的decorator用法如下：
+
+```python
+@log('execute')
+def now():
+    print('2015-3-25')
+```
+
+执行结果如下：
+
+```python
+>>> now()
+execute now():
+2015-3-25
+```
+
+和两层嵌套的decorator相比，3层嵌套的效果是这样的：
+
+```python
+>>> now = log('execute')(now)
+```
+
+我们来剖析上面的语句，首先执行```log('execute')```，返回的是```decorator函数```，再调用返回的函数，参数是```now函数```，返回值最终是```wrapper```函数。
+
+以上两种decorator的定义都没有问题，但还差最后一步。因为我们讲了函数也是对象，它有```__name__```等属性，但你去看经过decorator装饰之后的函数，它们的```__name__```已经从原来的```'now'```变成了```'wrapper'```：
+
+```python
+>>> now.__name__
+'wrapper'
+```
+
+因为返回的那个```wrapper()```函数名字就是```'wrapper'```，所以，需要把原始函数的```__name__```等属性复制到```wrapper()```函数中，否则，有些依赖函数签名的代码执行就会出错。
+
+不需要编写```wrapper.__name__ = func.__name__```这样的代码，Python内置的```functools.wraps```就是干这个事的，所以，一个完整的decorator的写法如下：
+
+```python
+import functools
+
+def log(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kw):
+        print('call %s():' % func.__name__)
+        return func(*args, **kw)
+    return wrapper
+```
+
+或者针对带参数的decorator：
+
+```python
+import functools
+
+def log(text):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kw):
+            print('%s %s():' % (text, func.__name__))
+            return func(*args, **kw)
+        return wrapper
+    return decorator
+```
+
+在面向对象（OOP）的设计模式中，*decorator被称为装饰模式*。OOP的装饰模式需要通过继承和组合来实现，而Python除了能支持OOP的decorator外，直接从语法层次支持decorator。Python的decorator可以用函数实现，也可以用类实现。
+
+decorator可以增强函数的功能，定义起来虽然有点复杂，但使用起来非常灵活和方便。
 
 ##  set  集合
 - 集合用```{}```表示，元素之间用都好分隔
