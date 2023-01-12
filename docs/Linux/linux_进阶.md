@@ -1877,6 +1877,24 @@ Mem:           1879         333         210          14        1335        1360
 Swap:             0           0           0
 ```
 
+### aria2
+
+Aria2是一个免费的开源轻量级多协议命令行实用程序，可以从Internet上下载文件。它支持各种协议，例如HTTP，HTTPS，FTP甚至BitTorrent。Aria2可在Windows，Linux和Mac OSX上运行。
+
+以下是Aria2主要功能：
+
+1. 资源占用少：Aria2非常轻量化，占用CPU和内存一小部分。正常FTP/HTTP下载，占用内存约为4MB，BitTorrent下载占用内存约为9MB。
+2. 多连接下载：Aria2是一种多协议下载工具，支持多种协议，并尝试尽可能多地使用最大带宽来加快下载速度。
+3. 远程控制：Aria2支持RPC接口，更具体地说是JSON-RPC和XML-RPC。
+4. 功能齐全的BT功能：这些功能包括种子文件，磁力链接，加密，选择性下载和本地对等发现等。
+
+要下载磁力链接文件，如果下载没有速度，可以添加--bt-tracker=选项，后面填写tracker的地址，加上BT种子或磁力链接地址即可：
+
+```bash
+$ aria2c --bt-tracker=udp://tracker.opentrackr.org:1337/announce,udp://tracker.cyberia.is:6969/announce,udp://exodus.desync.com:6969/announce,udp://3rt.tace.ru:60889/announce,http://5rt.tace.ru:60889/announce,udp://tracker.internetwarriors.net:1337/announce magnet:?xt=urn:btih:45521E5D3C26890BAAA2928BC511D1BE88074518&dn=cn_windows_10_business_editions_version_20h2_updated_dec_2020_x64_dvd_547eb680.iso&xl=5982177280 
+```
+
+Tips：Tracker地址在github中有。如果没有速度了，可以更换几个tracker地址。[这里](https://github.com/ngosang/trackerslist/blob/master/trackers_best.txt)。*每个地址用,逗号分隔*
 
 ### wget
 
