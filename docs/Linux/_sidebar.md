@@ -1,5 +1,7 @@
 - [首页](../README.md)
 - [Linux基础](/Linux/basic.md)
+- [文本处理](/Linux/text_processing.md)
 - [用户和组](/Linux/user_group.md)
 - [三剑客和正则](/Linux/linux_reg.md)
 - [Linux进阶](/Linux/linux_进阶.md)
+- [编译](/Linux/compile_program.md)
