@@ -7,5 +7,6 @@
 - [Linux](/Linux/)
 - [Shell](/shell/)
 - [OS](/operation_system/)
+- [汇编](/x86asm/)
 - [Database](/Database/)
 - [Windows](/windows/)
