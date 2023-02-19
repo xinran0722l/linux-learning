@@ -221,6 +221,281 @@ end ; 汇编承接的结束标记
 
 (...)--为了方便学习做出的约定，表示一个```内存单元```或寄存器中的内容
 
+## loop
+
+```loop``` 指令的循环条件为 ```cx```,当 cx 中的值为 0时，则结束循环,继续执行下面的指令
+
+> cx 的值若不小心设为 0，则会产生 0 - 1 = FFFF 的越界
+
+- 8086CPU 执行 loop 时的步骤：
+    * (cx) = (cx) - 1
+    * cx 不为 0 时才执行循环，若 cx = 0,则执行下一条指令
+
+```x86asm
+;计算123 * 236的乘积
+assume cs:code 
+code segment
+    mov ax,0
+
+    mov cx,236
+s:  add ax,123
+    loop s
+
+    mov ax,4c00H
+    int 21H
+code ends
+end
+```
+
+### loop和[bx]的联合应用
+
+```x86asm
+;未改进前，无法实现题目要求
+;计算ffff:0 ~ ffff:b累加和并存入 dx 中
+assume cs:code
+code segment
+    mov ax,0ffffH
+    mov ds,ax   ;设置(ds)=ffffH
+    mov dx,0    ;初始化累加寄存器 (dx)=0
+
+    mov al,ds:[0]
+    mov ah,0    ;(ax)=((ds)*16+0)=(ffff0H)
+    add dx,ax   ;向 dx 中加上ffff:0单元的数值
+
+    mov al,ds:[1]
+    mov ah,0    ;(ax)=((ds)*16+0)=(ffff0H)
+    add dx,ax   ;向 dx 中加上ffff:0单元的数值
+
+    ...中间的累加省略
+
+    mov al,ds:[0ah]
+    mov ah,0    ;(ax)=((ds)*16+0)=(ffff0H)
+    add dx,ax   ;向 dx 中加上ffff:0单元的数值
+
+    mov al,ds:[0bh]
+    mov ah,0    ;(ax)=((ds)*16+0)=(ffff0H)
+    add dx,ax   ;向 dx 中加上ffff:0单元的数值
+
+    mov ax,4c00H
+    int 21H
+code ends
+end
+```
+
+```x86asm
+;改进后
+;计算ffff:0 ~ ffff:b累加和并存入 dx 中
+assume cs:code
+code segment
+    mov ax,0ffffH
+    mov ds,ax   ;设置(ds)=ffffH
+    mov dx,0    ;初始化累加寄存器 (dx)=0
+    mov bx,0    ;初始化 ds:bx 指向 ffff:0,循环变量
+
+    mov cx,12   ;设置循环次数 (cx) = 12
+
+s:  mov al,[bx]
+    mov ah,0    ;(ax)=((ds)*16+0)=(ffff0H)
+    add dx,ax   ;向 dx 中加上ffff:0单元的数值
+    inc bx  ;ds:bx 指向下一个单元，自增(++)
+    loop s
+
+    mov ax,4c00H
+    int 21H
+code ends
+end
+```
+
+### 段前缀的使用
+
+```x86asm
+;将ffff:0~ffff:b中的数据复制到0:200~0:20b中
+assume cs:code
+code segment
+    mov ax,0ffffh
+    mov ds,ax   ;ds=0ffffH
+    mov ax,0020h
+    mov es,ax   ;es=0020H
+
+    mov bx,0    ;中转数据,此时ds:bx指向ffff:0, es:bx指向0020:0
+    mov cx,12   ;循环次数12次
+
+s:  mov dl,[bx] ;将ffff:bx的数据送入dl
+    mov es:[bx],dl  ;将dl的数据送入 0020:bx
+    inc bx  ;bx++
+    loop s
+
+    mov ax,4c00h
+    int 21h
+code ends
+end
+```
+
+```x86asm
+;对上述代码的改进
+assume cs:code
+code segment
+    mov ax,0ffffh
+    mov ds,ax   ;ds=0ffffH
+    mov ax,0020h
+    mov es,ax   ;es=0020H
+
+    mov bx,0    ;中转数据,此时ds:bx指向ffff:0, es:bx指向0020:0
+    mov cx,6   ;循环次数6次
+
+s:  push ds:[bx] ;节省寄存器
+    pop es:[bx]  
+    add bx,2
+    loop s
+
+    mov ax,4c00h
+    int 21h
+code ends
+end
+```
+
+### 小结(检测点)
+
+向内存0:200~0:23F依次传送数据0~63(3FH)
+
+```x86asm
+assume cs:code
+code segment
+    mov ax,20H
+    mov es,ax
+
+    mov cx,64
+    mov bx,0
+
+    mov dl,0
+
+s:  mov es:[bx],dl
+    inc bx
+    inc dl
+    loop s
+
+    mov ax,4c00H
+    int 21H
+code ends
+end
+```
+
+向内存0:200~0:23F依次传送数据0~63(3FH),只使用9条指令，9条指令包括*mov ax,4c00h* 和 *int 21h* 
+
+```x86asm
+assume cs:code
+code segment
+    mov ax,20H
+    mov es,ax
+
+    mov cx,64
+    mov bx,0
+
+s:  mov es:[bx],bl
+    inc bx
+    loop s
+
+    mov ax,4c00H
+    int 21H
+code ends
+end
+```
+
+## 多个段的源码
+
+```x86asm
+;累加dw定义的8个数据并保存至ax内
+assume cs:code
+code segment
+        dw 0123h,0456h,0789h,0abch,0defh,0fedh,0cbah,0987h
+        ;dw -> define word,定义数据
+
+start:  mov bx,0    ;start表明程序入口
+        mov ax,0
+
+        mov cx,8
+s:      add ax,cs:[bx]
+        add bx,2
+        loop s
+
+        mov ax,4c00h
+        int 21h
+code ends
+end start   ;end start 表明程序结束
+```
+
+```x86asm
+;将dw定义的数据存入栈中并逆序输出
+assume cs:code
+code segment
+        dw 0123h,0456h,0789h,0abch,0defh,0fedh,0cbah,0987h
+        dw 0,0,0,0,0,0,0,0
+        dw 0,0,0,0,0,0,0,0
+
+start:  mov ax,cs   
+        mov ss,ax
+        mov sp,48
+
+        mov bx,0
+        mov cx,8
+
+s:      push cs:[bx]
+        add bx,2
+        loop s
+
+        mov bx,0
+        mov cx,8
+
+s:      pop cs:[bx]
+        add bx,2
+        loop popData
+
+        mov ax,4c00h
+        int 21h
+code ends
+end start
+```
+
+## and or
+
+```x86asm
+;and 与运算
+mov al,00001010B
+and al,00001111B    ;and 将相对应的位，2个为1,运算结果为1
+;      00001010B
+
+;or 或运算
+mov al,00001111B
+or  al,11110000B    ;or 相对应的位有一个为1,结果为1
+;      11111111B
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
