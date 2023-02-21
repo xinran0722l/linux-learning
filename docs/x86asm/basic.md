@@ -173,12 +173,51 @@ mov、add、 sub 是具有两个操作对象的指令，访问内存中的数据
 
 ## 栈
 
+8086CPU中栈操作的都是字型数据(2个字节),同 CS：IP 指向待执行的指令般，
+SS:SP 指向栈顶
+
 - 8086CPU 中，有两个与栈相关的寄存器
     * SS 栈段寄存器 存放栈顶的*段地址*
     * SP 栈顶指针寄存器 存放栈顶的*偏移地址*
     * 任意时刻，SS:SP 都指向栈顶元素
 - push ax 将ax中的数据送入栈中
+    * push 时，SP=SP-2
 - pop ax 从栈顶去除数据送入ax
+    * pop 时，SP=SP+2
+
+```x86asm
+;在10000H处写入字型数据2266H
+;通过内存单元实现
+mov ax,1000H
+mov ds,ax
+mov ax,2266H
+mov [0],ax
+
+;栈实现
+mov ax,1000H
+mov ss,ax
+mov sp,2    ;由于要在10000H处写入2个字节
+            ;10000H + 2 = 10002H,sp = 2
+mov ax,2266H
+push ax
+```
+
+```x86asm
+;利用栈，交换ax和bx中的数据
+;栈的起始地址为10000H~1000FH
+mov ax,1000H
+mov ss,ax   ;ss:sp指向栈顶
+mov sp,0010H    ;初始化栈顶
+
+mov ax,001aH
+mov bx,001bH
+
+push ax
+push bx ;ax,bx入栈
+
+pop ax
+pop bx  ;完成交换
+```
 
 
 ## 编译汇编
