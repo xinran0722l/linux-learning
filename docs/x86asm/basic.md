@@ -487,9 +487,9 @@ s:      push cs:[bx]
         mov bx,0
         mov cx,8
 
-s:      pop cs:[bx]
+s0:     pop cs:[bx]
         add bx,2
-        loop popData
+        loop s0
 
         mov ax,4c00h
         int 21h
@@ -511,42 +511,173 @@ or  al,11110000B    ;or 相对应的位有一个为1,结果为1
 ;      11111111B
 ```
 
+### 大小写转换
 
+```x86asm
+;将datasg中的第一个字符串转大写，第二个串转小写
+assume cs:codesg,ds:datasg
+datasg segment
+	db 'BaSiC'
+	db 'iNfOrMaTiOn'
+datasg ends
 
+codesg segment
+start:	mov ax,datasg
+	mov ds,ax	;设置ds指向datasg段
 
+	mov bx,0	;设置ds:bx指向‘BaSiC'的第一个字母
 
+	mov cx,5	;循环’BaSiC'的长度(5次)
+s:	mov al,ds:[bx]	;将ASCII码从ds:bx所指向的单元中取出
+	and al,11011111B;将al中的ASCII码的第5位置为0,转为大写字母
+	mov ds:[bx],al	;将转变后的ASCII码写回原内存单元
+	inc bx	;ds:bx指向下一个字母
+	loop s
 
+	mov bx,5
 
+	mov cx,11
+s0:	mov al,[bx]
+	or al,00100000B	;将al中的ASCII码的第5位置为1,变为小写字母
+	mov [bx],al
+	inc bx
+	loop s0
 
+	mov ax,4c00H
+	int 21H
+codesg ends
+end start
+```
 
+解析：
 
+```x86asm
+;小写字母的ASCII码-20H就是大写字母的ASCII码
+;将'a'的ASCII码-20H就是'A'
+A   41  01000001    a   61  01100001
+B   42  01000010    b   62  01100010
+C   43  01000011    c   63  01100011
+D   44  01000100    d   64  01100100
+```
 
+> 以 ASCII 码的二进制形式来看，除第5位(位数从0开始,即从右往左)外，大写和小写的其他位都一样。大写字母ASCII码第5位是0,小写字母第5位是1。这样，一个字母，不管原本是大写或小写，只要将其第5位置0,它就是大写，将它第5位置1,它就是小写
 
+### [bx + idata]
 
+[bx] 表示 段地址为ds,偏移地址位bx的内存单元，而[bx + idata] 也是同样的效果，只是更灵活
 
+```x86asm
+mov ax,[200 + bx]   ;该指令也可以写成如下格式
+;(ax) = ((ds)*16+(bx)+200)
+mov ax,200[bx]
+mov ax,[bx].200
+```
 
+```x86asm
+;通过[bx+idata]这种表示内存单元的方式
+;将datasg中第一个串转大写，第二个转小写
+;可以用[0+bx]和[5+bx]的方式在同一个循环中定位这两个串
+assume cs:codesg,ds:datasg
+datasg segment
+	db 'BaSiC'
+	db 'MinIX'
+datasg ends
 
+codesg segment
+start:	mov ax,datasg
+	mov ds,ax
+	mov bx,0
 
+	mov cx,5
 
+s:	mov al,[bx] ;定位第一个字符串中的字符
+	and al,11011111B
+	mov [bx],al
+	mov al,[5+bx]   ;定位第二个字符串中的字符
+	or al,00100000B
+	mov 5[bx],al
+	inc bx
+	loop s
 
+	mov ax,4c00H
+	int 21H
+codesg ends
+end start
+```
 
+### si和di
 
+si 和 di 是8086CPU中和 bx 功能相近的寄存器，si 和 bi 不能拆分为2个8位寄存器
 
+```x86asm
+;下面3组指令实现了相同功能
+mov bx,0
+mov ax,[bx]
 
+mov si,0
+mov ax,[si]
 
+mov di,0
+mov ax,[di]
+```
 
+```x86asm
+;下面3组指令也实现了相同功能
+mov bx,0
+mov ax,[bx + 123]
 
+mov si,0
+mov ax,[si + 123]
 
+mov di,0
+mov ax,[di + 123]
+```
 
+```x86asm
+;用 si 和 di 实现将字符串'welcome to linux'复制到其后面的数据区中
+assume cs:codesg,ds:datasg
+datasg segment
+	db 'welcome to linux'
+	db '................'
+datasg ends
 
+codesg segment
+start:	mov ax,datasg
+	mov ds,ax
+	mov si,0
+	mov di,10H
+	mov bx,0
+	mov dx,0
 
+	mov cx,16
+s:	mov dl,[si+bx]
+	mov [di+bx],dl
+	inc bx
+	loop s
 
+	mov ax,4c00H
+	int 21h
+codesg ends
+end start
+```
 
+```x86asm
+;用 si 和 di 实现将字符串'welcome to linux'复制到其后面的数据区中
+;改进代码如下
+codesg segment
+start:	mov ax,datasg
+        mov ds,ax
+        mov si,0
 
+        mov cx,8
+s:  	mov ax,0[si]    ;将ds:0的数据赋值给ax
+        mov 16[si],ax   ;将ax中保存的内容赋值给ds:0010H处
+        add si,2
+        loop s
 
-
-
-
-
-
+        mov ax,4c00H
+        int 21h
+codesg ends
+end start
+```
 
