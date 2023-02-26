@@ -681,3 +681,168 @@ codesg ends
 end start
 ```
 
+将datasg段中每个单词的首字母转为大写
+
+```x86asm
+assume cs:codesg,ds:datasg
+datasg segment
+	db '1. file         '
+	db '2. edit         '
+	db '3. search       '
+	db '4. view         '
+	db '5. options      '
+	db '6. help         '
+datasg ends
+
+codesg segment
+start:	mov ax,datasg
+	mov ds,ax
+	mov bx,3    ;db定义的串，索引同数组，从0开始
+	mov si,0
+	mov ax,0
+
+	mov cx,6
+s:	mov al,ds:[bx+si]   ;定义偏移地址
+	and al,11011111B    ;逻辑与，转为ASCII大写字母
+	mov ds:[si+bx],al   ;重新写入原位置
+	add si,10H  ;重新指向下一行的单词首字母
+	loop s
+
+
+	mov ax,4c00H
+	int 21H
+codesg ends
+end start
+```
+
+***
+
+将datasg段中的字母全部转为大写(未用栈版)
+
+```x86asm
+assume cs:codesg,ds:datasg
+datasg segment
+	db 'ibm             '
+	db 'dec             '
+	db 'dos             '
+	db 'vax             '
+datasg ends
+
+codesg segment
+start:	mov ax,datasg	;获取datasg段的地址
+	mov ds,ax	;让ds指向数据段
+	mov bx,0
+	mov dx,4
+	mov si,0
+
+	mov cx,dx	
+s:	mov dx,cx	;由于双循环，所以用dx保存cx的循环次数	
+
+	mov cx,3
+s0:	mov al,ds:[si+bx]	;取出ds指向内存中的数据保存到al
+	and al,11011111B	;逻辑与运算，转大写
+	mov ds:[si+bx],al	;重新写入原内存
+	inc bx	;让bx重新指向下一个内存的字母
+	loop s0	;循环3次，一行3个字母全部转大写
+
+	mov bx,0	;此时bx为3,无法正确指向下一行的字母
+	add si,10H	;让si指向下一行
+	mov cx,dx	;将第一重循环前保存的cx还回
+	loop s
+
+	mov ax,4c00H
+	int 21H
+codesg ends
+end start
+```
+
+
+将datasg段中的字母全部转为大写(栈版)
+
+```x86asm
+assume cs:codesg,ds:datasg,ss:stacksg
+datasg segment
+	db 'ibm             '
+	db 'dec             '
+	db 'dos             '
+	db 'vax             '
+datasg ends
+
+stacksg segment 
+	dw 0,0,0,0,0,0,0,0	;定义一个段，用来做栈段，大小为16个字节
+stacksg ends
+
+codesg segment
+start:	mov ax,datasg	
+	mov ds,ax
+	mov ax,stacksg
+	mov ss,ax
+	mov sp,10H	;也可写 mov sp,16
+	mov bx,0
+
+	mov cx,4	
+
+s0:	push cx	;将外层循环的cx值压栈
+	mov si,0
+	mov cx,3	;cx设置为内层循环的次数
+
+s:	mov al,[bx + si]
+	and al,11011111B	;
+	mov [bx + si],al	;
+	inc si
+	loop s
+
+	add bx,10H	;bx指向下一行(一行16个字节，10H)
+	pop cx	;从栈顶弹出原cx的值，恢复第一层循环
+	loop s0
+
+	mov ax,4c00H
+	int 21H
+codesg ends
+end start
+```
+
+***
+
+将 datasg 段中每个单词的前4个字母转为大写(栈版)
+
+```x86asm
+assume cs:codesg,ds:datasg,ss:stacksg
+datasg segment
+        db '1. display      '       
+        db '2. brows        '
+        db '3. replace      '
+        db '4. modify       '
+datasg ends
+
+stacksg segment
+        dw 0,0,0,0,0,0,0,0
+stacksg ends
+
+codesg segment
+start:  mov ax,stacksg  ;设置ss,ds的指向
+        mov ss,ax
+        mov sp,10H
+        mov ax,datasg
+        mov ds,ax
+
+        mov cx,4    ;设置外层循环次数
+s0:     mov bx,0
+        push cx ;入栈外层循环次数，保存至栈中
+
+        mov cx,4    ;设置内层循环
+s:      mov al,ds:[bx+si+3] ;取出滴一个字母
+        and al,11011111B    ;逻辑与，转为大写
+        mov ds:[bx+si+3],al ;将转为大写的字母写回原内存单元
+        inc bx  ;指向第二个字母
+        loop s
+
+        add si,10H  ;指向下一行字符串
+        pop cx  ;恢复外层循环的值
+        loop s0
+
+        mov ax,4c00H
+        int 21H
+codesg ends
+end start
+```
