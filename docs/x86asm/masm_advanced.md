@@ -233,3 +233,175 @@ codesg segment
 codesg ends
 end start
 ```
+
+### jmp
+
+jmp 为无条件转移指令，可以只修改IP,也可以同时修改 CS 和 IP;jmp 要给出两种信息
+
+1. 转移的目的地址
+2. 转移的距离(段间转移、段内短转移，段内近转移)
+
+#### 依据位移进行转移的jmp
+
+```jmp short 标号```(转到标号处执行指令) ,这种格式的jmp 指令实现的是段内短转移，对IP 的修改范围为*-128～127* ,
+向前时最多128个字节，向后转移时最多127个字节。其中```short```符号，说明指令进行的是短转移。
+
+```x86asm
+assume cs:codesg
+codesg segment
+start:  mov ax,0
+        jmp short s
+        add ax,1
+s:      inc ax
+codesg ends
+end start
+;最后ax 为1,执行 jmp short s 后，直接执行了 inc ax
+```
+
+```jmp short 标号```的功能为：(ip) = (ip) + 8位位移
+1. 8位位移 = 标号处的地址 - jmp指令后的第一个字节的地址
+2. short 指名此处的位移为8位位移
+3. 8位位移的范围为*-128-127*,用补码表示 
+4. 8位位移由编译程序在编译时计算
+
+还有一种和```jmp short 标号```功能相近的指令格式，```jmp near ptr 标号```,他实现的是段内近转移
+
+```jmp near ptr 标号```的功能为：(ip) = (ip) + 16位位移
+1. 16位位移 = 标号处的地址 - jmp指令后的第一个字节的地址
+2. near ptr 指名此处的位移为16位位移，进行的是段内近转移
+3. 16位位移的范围为*-32768-32767* ,用补码表示
+4. 16位位移由编译程序在编译时计算
+
+#### jmp 段间转移
+
+上面 jmp 指令，其对应的机器码中并没有转移的目的地址，而是相对于当前IP 的转移位移
+
+```jmp far ptr 标号``` 实现的是段间转移，又称为远转移。功能如下：
+
+```(CS) = 标号所在段的段地址; (IP) = 标号所在段中的偏移地址```; ```fat ptr``` 指令了指令用标号的段地址和偏移地址修改CS 和 IP
+
+#### jmp 段内转移(内存地址)
+
+转移地址在内存中的 jmp 指令有两种格式：
+
+1. ```jmp word ptr 内存单元地址(段内转移)```; 从内存地址处开始存放着一个字，是转移的目的偏移地址
+    * 内存单元地址可用寻址方式的任一格式给出
+    ```
+    mov ax,0123H
+    mov ds:[0],ax
+    jmp word ptr ds:[0]
+    ;执行后，(IP) = 0123H
+
+    mov ax,0123H
+    mov [bx],ax
+    jmp word ptr [bx]
+    ;执行后，(IP) = 0123H
+    ```
+2. ```jmp dword ptr 内存单元地址(段间转移)```; 从内存地址开始处存放着2个字，高地址处的字是转移的目的段地址，低地址处是转移的目的偏移地址
+    * (CS) = (内存地址 + 2)
+    * (IP) = (内存地址)
+
+    ```x86asm
+    mov ax,0123H
+    mov ds:[0],ax
+    mov word ptr ds:[2],0
+    jmp dword ptr ds:[0]
+    ;(CS) = 0,(IP)= 0123H,CS:IP指向0000:0123
+
+    mov ax,0123H
+    mov [bx],ax
+    mov word ptr [bx+2],0
+    jmp dword ptr [bx]
+    ;(CS) = 0,(IP) = 0123H,CS:IP指向 0000:0123H
+    ```
+
+- 定义data 段中的数据，使得 jmp 指令执行后，CS:IP 指向程序的第一条指令
+
+```x86asm
+assume cs:codesg
+
+data segment
+        db 0
+        dw offset start ;也可写 0
+data ends
+
+codesg segment
+start:  mov ax,data
+        mov ds,ax
+        mov bx,0
+        jmp word ptr [bx+1]
+codesg ends
+end start
+```
+
+### jcxz 指令
+
+jcxz 指令为有条件转移指令，```所有的有条件转移指令都是短转移，在机器码中包含转移的唯一，而不是目的地址```; 对 IP 的修改范围都为*-128-127* 
+
+```jcxz 标号``` 如果 (CX) = 0,转移到标号处执行。当 (CX) = 0时，(IP) = (IP) + 8位位移
+1. 8位位移 = 标号处的地址 - jcxz 指令后的第一个字节的地址
+2. 8位位移的范围为 *-128～127*,用补码表示
+3. 8位位移由编译程序在编译时计算
+4. 当 (CX) != 0 时，什么也不做
+
+```jcxz 标号``` 相当于 ```if ((cx) == 0) jmp short 标号```
+
+- 利用 jcxz 指令，实现在内存 2000H 段中查找第一个值为 0 的字节，找到后，将其偏移地址存储在 dx 中
+
+```x86asm
+assume cs:codesg
+codesg segment
+start:  mov ax,2000H
+        mov ds,ax
+        mov bx,0
+
+s:      mov ch,0    ;从这里开始往下的4行都是补全的程序
+        mov cl,ds:[bx]
+        jcxz ok
+        inc bx
+
+        jmp short s
+ok:     mov dx,bx   ;此处的 ok标号没有意义,同下
+
+        mov ax,4c00H
+        int 21H
+
+codesg ends
+end start
+```
+
+### loop 指令
+
+loop 指令为循环指令，```所有的循环指令都是短转移```,在对应的机器码中包含转移的位移，而不是目的地址，对IP的修改范围都是：*-128~127* 
+
+```loop 标号``` ((CX) = (CX) - 1,如果(CX) != 0,转移到标号处执行)
+
+```loop 标号``` 的功能相当于 ```(CX) --; if((CX) != 0) jmp short 标号;```
+
+- 利用 loop 指令，实现在内存 2000H 段中查找第一个值为 0 的字节，找到后，将其偏移地址存储在 dx 中
+
+```x86asm
+
+assume cs:codesg
+codesg segment
+start:  mov ax,2000H
+        mov ds,ax
+        mov bx,0
+
+s:      mov cl,ds:[bx]
+        mov ch,0
+        inc cx  ;避免cx-- 为FFFF 后产生的误差
+        inc bx
+        loop s
+
+ok:     dec bx  ;dec 和 inc 相反,相当于 bx --
+        mov dx,bx
+
+        mov ax,4c00H
+        int 21H
+codesg ends
+end start
+```
+
+
+
