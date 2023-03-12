@@ -410,6 +410,23 @@ codesg ends
 end start
 ```
 
+- 使用 Debug 查看内存，结果如下
+
+```
+2000:1000   BE 00 06 00 00 00 ...
+```
+
+则此时，CPU执行如下指令后，CS 和 IP 的值为？
+
+```
+mov ax,2000H
+mov es,ax
+jmp dword ptr es:[1000H]
+
+; CS = 0006
+; IP = 00BE
+```
+
 ### jcxz 指令
 
 jcxz 指令为有条件转移指令，```所有的有条件转移指令都是短转移，在机器码中包含转移的唯一，而不是目的地址```; 对 IP 的修改范围都为*-128-127* 
@@ -478,6 +495,271 @@ codesg ends
 end start
 ```
 
+#### 向显存写入三行字符串(实验9)
 
+```x86asm
+assume cs:code
+data segment
+        db 'welcome to linux'
+        ; 0000 0000
+        ;  rgb  rgb
+        ;  背景 前景
+        ;闪烁  高亮
+        db 00000010b    ;绿色
+        db 00100100b    ;绿底红色
+        db 01110001b    ;白底蓝色
+data ends
 
+code segment
+
+start:  mov ax,data
+        mov ds,ax
+        mov bx,0    ;指向显存的字单元
+        mov di,0    ;指向下一行显存的字单元
+        mov bp,0    ;指向data定义数据的字符
+
+        mov ax,0B810H
+        mov es,ax   ;es 指向显存(屏幕)
+        mov si,16   ;指向字符属性(共定义了3个字符属性)
+
+        mov cx,3
+showcol: mov ax,0    ;临时保存显存字符和字符属性
+        push cx
+        mov ah,ds:[si]  ;给高位赋值字符属性
+
+        mov cx,16
+showrow: mov al,ds:[bp]  ;低位赋值字符的ASCII码
+        mov es:[bx+di],ax  ;向显存写入ASCII码及属性
+        inc bp  ;指向下一个定义字符
+        add bx,2    ;指向下一个显存的字单元
+
+        loop showrow
+        mov bp,0
+        inc si
+        mov bx,0
+        add di,160
+        pop cx
+
+        loop showcol
+
+        mov ax,4c00H
+        int 21H
+code ends
+end start
+```
+
+## call & ret 
+
+call & ret 都是*转移指令*,他们都*修改 IP*,或```同时修改 CS 和 IP```
+
+### ret 和 retf
+
+ret 指令用栈中的数据，修改 IP 的内容，从而实现```近转移```
+retf 指令用栈中的数据，修改 CS 和 IP 的内容，从而实现```远转移```
+
+CPU 执行 ret 指令时，进行两步操作
+
+```x86asm
+(IP) = ((ss) * 16 + (sp))
+(sp) = (sp) + 2
+;用汇编指令描述 ret 
+;CPU 执行 ret 指令时，相当于
+;pop IP
+```
+
+CPU 执行 retf 指令时，进行4步操作
+
+```x86asm
+(IP) = ((ss) * 16 + (sp))
+(sp) = (sp) + 2
+(CS) = ((ss) * 16 + (sp))
+(sp) = (sp) + 2
+;用汇编指令描述 retf
+;CPU 执行 retf 指令时，相当于
+;pop IP
+;pop CS
+```
+- 下面的程序，ret 执行后，IP = 0, CS:IP 指向代码段的第一条指令
+
+```x86asm
+assume cs:code
+stack segment
+        db 16 dup (0)
+stack ends
+code segment
+        mov ax,4c00H
+        int 21H
+start:  mov ax,stack
+        mov ss,ax
+        mov sp,16
+        mov ax,0
+        push ax
+        mov bx,0
+        ret
+
+code ends
+end start
+```
+
+- 下面的程序，retf 执行后, CS:IP 指向代码段的第一条指令
+
+```x86asm
+assume cs:code
+stack segment
+        db 16 dup (0)
+stack ends
+code segment
+        mov ax,4c00H
+        int 21H
+start:  mov ax,stack
+        mov ss,ax
+        mov sp,16
+        mov ax,0
+        push cs
+        push ax
+        mov bx,0
+        retf
+code ends
+end start
+```
+
+### call 指令
+
+CPU 执行 call 指令时，进行2步操作
+
+```x86asm
+将当前的 IP 或 CS & IP 入栈
+转移
+```
+
+call 指令不能实现短转移，除此之外，call 指令实现转移的方法和 jmp 指令的原理相同
+
+### 依据位移进行转移的 call
+
+call 标号(将当前的 IP 入栈后，转到标号处执行指令)
+
+CPU 执行这种格式的 call 指令时，进行如下操作
+
+```x86asm
+(sp) = (sp) - 2
+    ((ss) * 16 + (sp)) = (IP)
+(IP) = (IP) + 16位位移
+
+16位位移 = 标号处的地址 - call指令后的第一个字节的地址
+16位位移的范围为 -32768～32767,用补码表示
+16位位移由编译程序在编译时算出
+```
+
+如果用汇编语法来解释这种格式的 call 指令，则CPU 执行 *call 标号* 时，相当于如下
+
+```x86asm
+push IP
+jmp near ptr 标号
+```
+
+- 下图的指令执行后，ax 中的数值为多少？
+
+![call](../images/x86asm/call_first.png)
+
+```x86asm
+ax = 0
+;call s == push IP && jmp near ptr s
+执行 call s 后，IP 指向 inc ax,前两条指令字节长度为6
+在 IP = 6后，被 push
+之后 jmp near ptr 至 s 处，执行 pop ax
+ax = 6
+```
+
+### 转移的目的地址在指令中的 call
+
+前面的 call 指令，其对应的机器指令中并没有转移的目的地址，而是相对于当前 IP 的转移位移
+
+```call far ptr 标号```实现的是*段间转移* ,CPU 执行这种格式的 call 指令时，进行如下操作
+
+```x86asm
+(sp) = (sp) -2
+    ((ss) * 16 + (sp)) = (CS)
+    (sp) = (sp) - 2
+    ((ss) * 16 + (sp)) = (IP)
+(CS) = 标号所在段的段地址
+(IP) = 标号所在段的偏移地址 
+```
+
+用汇编语法来解释这种格式的 call 指令，则 CPU 执行 *call fat ptr 标号* 时，相当于：
+
+```x86asm
+push CS
+push IP
+jmp fat ptr 标号
+```
+- 下图的指令执行后，ax 中的数值为多少？
+
+![call_second](../images/x86asm/call_second.png)
+
+推导过程和上题相同，直接写结果：*ax = 1010H* 
+
+### 转移地址在寄存器中的 call 指令
+
+```x86asm
+;指令格式
+call 16位reg
+
+(sp) = (sp) - 2
+((ss) * 16 + (sp)) = (IP)
+(IP) = (16位reg)
+```
+
+用汇编语法来解释这种格式的 call 指令，CPU 执行 *call 16位reg* 时，相当于
+
+```x86asm
+push IP
+jmp 16位reg
+```
+
+- 下图的指令执行后，ax 中的数值为多少？
+
+![call_three](../images/x86asm/call_three.png)
+
+```x86asm
+需要注意的是 [bp]
+[bp] 的表示在本章开头有写明
+单纯的 [bp] 中，是用 ss 来做段地址的
+ax = 000BH
+```
+
+### 转移地址在内存中的 call
+
+转移地址在内存中的 call 指令有2种格式
+
+```x86asm
+;1
+call word ptr 内存单元地址
+;用汇编语法解释这种格式的 call 指令，CPU 执行 call word ptr 内存地址 相当于进行
+push IP
+jmp word ptr 内存单元地址
+
+;比如下面的指令
+mov sp,10H
+mov ax,0123H
+mov ds:[0],ax
+call word ptr ds:[0]
+;执行后，IP = 0123H, SP = 0EH
+```
+
+```x86asm
+;2
+call dword ptr 内存地址单元
+;用汇编语法来解释这种格式的call 指令，CPU 执行 call dword ptr 内存地址 详单与进行
+push CS
+push IP
+jmp dowrd ptr 内存单元地址
+
+;比如，下面的指令
+mov sp,10H
+mov ax,0123H
+mov ds:[0],ax
+mov word ptr ds:[2],0
+call dword ptr ds:[0]
+;执行后，CS = 0,IP = 0123H,sp = 0cH
+```
 
