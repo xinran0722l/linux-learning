@@ -763,3 +763,63 @@ call dword ptr ds:[0]
 ;执行后，CS = 0,IP = 0123H,sp = 0cH
 ```
 
+- 检测点10.5
+
+1. 下面的程序执行后，ax中的值位多少？
+
+```x86asm
+assume cs:code
+stack segment
+        dw 8 dup (0)
+stack ends
+code segment
+start:  mov ax,stack
+        mov ss,ax
+        mov sp,16
+        mov ds,ax
+        mov ax,0
+        call word ptr ds:[0eH]
+        inc ax
+        inc ax
+        inc ax
+        mov ax,4c00H
+        int 21H
+code ends
+end start
+``` 
+
+ax 中的值为 3, ds 与 ss 中存放的段地址相同，在执行了 *call word ptr ds:[0eH]*后，程序会将 下一条指令 *inc ax* 的偏移量入栈，然后跳转到栈顶所指向的指令的位置，即跳转到第一条 inc ax 的位置， 故最后 ax 为 3。
+
+> note: 在使用 debug 单步跟踪时，由于 t 命令所导致的中断，而影响了栈中的值
+
+2. 下面的程序执行后，ax和bx中的数值为多少？
+
+```x86asm
+assume cs:codesg
+data segment
+	dw 8 dup (0)
+data ends
+code segment
+start:	mov ax,data
+	mov ss,ax
+	mov sp,16
+	mov word ptr ss:[0],offset s
+	mov ss:[2],cs
+	call dword ptr ss:[0]
+	nop
+s:	mov ax,offset s
+	sub ax,ss:[0ch]     
+   	mov bx,cs
+	sub bx,ss:[0eh]
+	mov ax,4c00h
+	int 21h
+code ends
+end start
+```
+
+ax中的数值为1，bx中的数值为0，注意到程序的一开始将a的偏移量和cs放入ss:[0]和ss:[2]中，然后调用call指令，将CS和IP(nop指令的偏移量)依此压栈后跳转到s处继续执行，ax最终为s的偏移量减去nop指令所在位置的偏移量，为1，bx最终为cs的段地址相减，为0。
+
+### call 和 ret 配合使用
+
+
+
