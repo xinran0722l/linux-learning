@@ -1,5 +1,6 @@
 - [**首页**](/README.md)
 - [git](/questionOfTheDay/gitcommand.md)
+- [Toshiba](/toshiba/)
 - [tmux](/questionOfTheDay/tmux.md)
 - [Python](/pyMD/)
 - [王道](/kingly_way_network/)

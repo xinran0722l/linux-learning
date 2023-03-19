@@ -497,6 +497,60 @@ end start
 
 #### 向显存写入三行字符串(实验9)
 
+内存空间中，```B8000H~BFFFFH```共 32KB 的空间，为 80 X 25 彩色字符的显示缓冲区。向这个地址空间写入数据，写入的内容立即出现在显示器上
+
+在 80 X 25 彩色字符模式下，显示器可以显示 25行，每行 80个字符，每个字符可以有 256种属性(背景色、前景色、闪烁、高亮等组合信息)
+
+一个字符在显示缓冲区中要```占用2个字节```,分别存放字符的 ASCII码和属性。80 X 25模式下，一屏的内容在显示缓冲区中共占用 4000 个字节
+
+显示缓冲区分为 8 页，每页 4KB(约等于4000B),显示器可以显示任意一页的内容。一般，显示第0页的内容。即，```B8000H~B8F9FH```中的 4000个字节的内容将出现在显示器上
+
+在一页显示缓冲区中：
+
+偏移 000~09F 对应显示器上的第一行(80个字符占 160个字节)
+
+偏移 0A0~13F 对应显示器上的第二行
+
+偏移 140~1DF 对应显示器上的第三行
+
+依次类推，偏移 F00~F9F 对应显示器上的第25行
+
+在一行中，一个字符站2个字节的存储空间(一个字),低位字节存储字符的 ASCII码，高位字节存储字符的属性。一行共80个字符，占160个字节
+
+即在一行中
+
+00~01 单元对应显示器的第一列
+
+02~03 单元对应显示器的第二列
+
+04~05 单元对应显示器的第三列
+
+依次类推，9E~9F 对应显示器上的第 80 列
+
+在显示缓冲区中，偶数地址存放字符，奇数地址存放字符的属性
+
+一个在屏幕上显示的字符，具有前景(字符色)和背景(底色)两种颜色，字符还可以以高亮度和闪烁的方式显示。各种属性信息被记录在属性字节中
+
+属性字节的格式：
+
+```x86asm
+0   0 0 0   0 0 0 0 
+BL  R G B   I R G B
+    背景
+              前景
+;BL=闪烁
+;I=高亮
+```
+
+红底绿字，属性字节为：01000010B
+
+红底闪烁绿字，属性字节为：11000010B
+
+黑底白字，属性字节为：00000111B
+
+白底蓝字，属性字节为：01110001B
+
+
 ```x86asm
 assume cs:code
 data segment
@@ -931,6 +985,164 @@ end start
 放在寄存器中传递给子程序。由于子程序中要用循环，循环的次数恰好是字符串的长度。可以将字符串的长度放在 cx 中
 
 ```x86asm
+assume cs:code
+data segment
+        db 'conversation'
+data ends
+code segment
+start:  mov ax,data
+        mov ds,ax
+        mov si,0    
+
+        mov cx,12
+        call capital
+
+        mov ax,4c00H
+        int 21H
+
+capital:and byte ptr [si],11011111b ;将 ds:si 所指单元的字母转为大写
+        inc si
+        loop capital
+        ret
+code ends
+end start
 ```
+
+### 寄存器冲突的问题
+
+设计一个子程序，功能：将一个全是字母，并以0结尾的字符串转为大写
+
+由于题目要求字符串后面会有0,标记字符串的结束。所以可以用 jcxz 来检测0,遇到就返回。由于不知道循环次数，所以使用 jmp 指令来跳转执行
+
+```x86asm
+capital:push cx ;保存外部会使用的数据
+        push si
+change: mov cl,ds:[si]  ;如果(cx)=0,ret
+        mov ch,0    ;否则转大写
+        jcxz ok
+        and byte ptr [si],11011111b ;将 ds:si 所指单元的字母转为大写
+        inc si
+        jmp short change
+ok:     pop si  ;恢复外部数据并返回
+        pop cx
+        ret
+```
+
+将多个以 0 结尾的字符串转为大写
+
+```x86asm
+assume cs:code
+data segment
+;        db 'conversation',0
+;        db 'hello'
+;        db 'conversation',0
+        db 'word',0
+        db 'unix',0
+        db 'wind',0
+        db 'good',0
+        db 'linux',0
+data ends
+code segment
+;将一个全是字母，以0结尾的字符串，转大写
+;参数：ds:si指向字符串的首地址
+;结果:没有返回值
+start:  mov ax,data
+        mov ds,ax
+        mov si,0    
+
+        mov cx,5
+s:      call capital
+        add si,5
+        loop s
+
+        mov ax,4c00H
+        int 21H
+
+capital:push cx
+        push si
+change: mov cl,ds:[si]  ;如果(cx)=0,ret
+        mov ch,0    ;否则转大写
+        jcxz ok
+        and byte ptr [si],11011111b ;将 ds:si 所指单元的字母转为大写
+        inc si
+        jmp short change
+ok:     pop si
+        pop cx
+        ret
+
+code ends
+end start
+```
+
+### 编写子程序
+
+#### 向屏幕显示字符串
+
+```x86asm
+assume cs:code
+data segment
+        db 'Welcome to linux!',0
+data ends
+code segment
+;子程序描述
+;名称：show_str
+;功能：在指定的位置，用指定的颜色，显示一个用 0 结束的字符串
+;参数：(dh)=行号(取值0～24),(dl)=列号(取值0～79)
+;      (cl)=颜色，ds:si指向字符串的首地址
+;返回：无
+;举例：在屏幕的8行3列，用绿色显示data段中的字符串
+; row = 160, 第8行 == 160 * 7 == 460H
+; columnes = +2，第3列 == 04~05
+start:  mov dh,8    ;显存的行
+        mov dl,3    ;现存的列
+        mov cl,2    ;字符的属性
+        mov ax,data
+        mov ds,ax
+        mov si,0
+        call showStr
+
+        mov ax,4c00H
+        int 21H
+
+showStr:push cx
+        push si
+        push ax
+        push bx
+        push dx
+
+        mov ax,0B800H   ;显存起始地址
+        mov es,ax   
+        mov bx,0
+        mov bl,dl
+        inc bx  ;bx指向要写入的位置
+        mov ah,cl
+
+change: mov al,ds:[si]  ;用ax存储字符和属性
+        mov ch,0
+        mov cl,ds:[si]  ;用cx判断是否返回
+        jcxz ok
+        inc si  ;si指向data段的下一个字符
+        mov es:[460H+bx],ax ;向显存写入数据
+        add bx,2    ;移动指向显存的指针(指向下一个要写入的位置)
+        jmp change
+
+ok:     pop dx
+        pop bx
+        pop ax
+        pop si
+        pop cx
+        ret
+
+code ends
+end start
+```
+
+
+
+
+
+
+
+
 
 
