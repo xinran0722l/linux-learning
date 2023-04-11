@@ -1137,12 +1137,64 @@ code ends
 end start
 ```
 
+#### 计算1000000 / 10 产生的溢出问题
 
+```x86asm
+assume cs:code,ss:stack,ds:data
+data segment
+        dd 1000000
+data ends
+stack segment
+        db 128 dup (0)
+stack ends
+code segment
+start:  mov ax,stack
+        mov ss,ax
+        mov sp,128
 
+        mov bx,data
+        mov ds,bx
 
+        mov bx,0
 
+        mov ax,ds:[bx+0]    ;参数 被除数低16位  L
+        mov dx,ds:[bx+2]    ;参数 被除数高16位  H
 
+        mov cx,10   ;参数 除数 N
 
+        push ax
+        mov bp,sp   ;ss:[bp+0]访问 ax 中的 L
 
+        call longDiv
 
+        mov ax,4c00H
+        int 21
 
+;======================================
+;计算公式如下
+;X/N = int(H/N)*65536 + [rem(H/N) * 65536+L] / N
+;X 被除数，范围:[0,FFFFFFFF]
+;N 除数，范围:[0,FFFF]
+;H X的高16位，范围:[0,FFFF]
+;L X的低16位，范围:[0,FFFF]
+;int() 描述运算符，取商，ps:int(38/10)=3
+;rem() 描述运算符，取余数，ps:int(38/10)=8
+
+longDiv:mov ax,dx
+        mov dx,0
+        div cx  ;ax = int(H/N) => dx    dx = rem(H/N)*65536
+
+        push ax
+
+        mov ax,ss:[bp+0]    ;[rem(H/N)*65536+L]
+
+        div cx  ;ax = [rem(H/N)*65536+L] / N 的商， dx = 余数
+
+        mov cx,dx
+
+        pop dx
+
+        ret
+code ends
+end start
+```
