@@ -206,7 +206,7 @@ stack ends
 
 ### 实验7 结构化数据寻址
 
-[struct](../images/x86asm/struct_seven_7.png)
+![struct](../images/x86asm/struct_seven_7.png)
 
 ```x86asm
 assume cs:codesg
