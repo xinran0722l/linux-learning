@@ -1343,3 +1343,351 @@ clear:  mov es:[bx],dx
 code ends
 end start
 ```
+### 课程设计
+
+将实验7中 Power idea 公司的数据按下图所示显示在屏幕上
+
+![ten](../images/x86asm/ten.png)
+
+```x86asm
+assume cs:codesg,ds:data,ss:stack
+data segment
+    db '1975', '1976', '1977', '1978', '1979', '1980', '1981', '1982', '1983' 
+    db '1984', '1985', '1986', '1987', '1988', '1989', '1990', '1991', '1992'
+    db '1993', '1994', '1995'
+    ;表示21个年的21个字符串
+
+    dd 16,22,382,1356,2390,8000,16000,24486,50065,97479,140417,197514
+    dd 345980,590827,803530,1183000,1843000,2759000,3753000,4649000,5937000
+
+    ;表示21个年公司总收入的21个dword型数据
+
+    dw 3,7,9,13,28,38,130,220,476,778,1001,1442,2258,2793,4037,5635,8226
+    dw 11542,14430,15257,17800
+    ; 以上是表示21年公司雇员人数的21个word型数据
+data ends
+
+table segment
+;               0123456789abcdef
+    db 21 dup ('year summ ne ?? ')
+table ends
+
+string segment
+        db 10 dup ('0'),0
+string ends
+
+stack segment
+        db 128 dup (0)
+stack ends
+
+codesg segment
+start:  mov ax,stack
+        mov ss,ax
+        mov sp,128
+
+        call init_reg
+
+        call clear_screen
+
+        call input_table
+        call output_table
+
+
+
+        mov ax,4c00H
+        int 21H
+
+;========================================
+output_table:
+        call init_reg_output_table
+        mov si,0
+        mov di,160*3
+
+        mov cx,21
+
+outputTable:
+        call show_year  ;年份
+        call show_income    ;收入
+        call show_employee  ;人数
+        call show_average_income    ;人均收入
+        add di,160
+        add si,16
+        loop outputTable
+
+        ret
+;               0123456789abcdef
+;    db 21 dup ('year summ ne ?? ')
+;========================================
+;========================================
+show_average_income:
+        push ax
+        push dx
+        push ds
+        push si
+        push di
+        mov ax,ds:[si+13]
+        mov dx,0
+
+        mov si,9
+        add di,30*2
+
+        call show_number
+        pop di
+        pop si
+        pop ds
+        pop dx
+        pop ax
+        ret
+;========================================
+show_employee:
+        push ax
+        push dx
+        push ds
+        push si
+        push di
+        mov ax,ds:[si+10]
+        mov dx,0
+
+        mov si,9
+        add di,20*2
+
+        call show_number
+        pop di
+        pop si
+        pop ds
+        pop dx
+        pop ax
+
+        ret
+;========================================
+show_income:
+        push ax
+        push dx
+        push ds
+        push si
+        push di
+        mov ax,ds:[si+5]
+        mov dx,ds:[si+7]
+
+        mov si,9
+        add di,10*2
+
+        call show_number
+        pop di
+        pop si
+        pop ds
+        pop dx
+        pop ax
+        ret
+;========================================
+
+show_number:
+
+        push ax
+        push bx
+        push cx
+        push dx
+        push ds
+        push es
+        push si
+        push di
+        push bp
+        
+        call isShortDiv
+        ; 判断采取 什么样的除法
+        ;长除法最终会变成 短除法
+
+        call init_reg_show_string
+
+        call show_string
+
+        pop bp
+        pop di
+        pop si
+        pop es
+        pop ds
+        pop dx
+        pop cx
+        pop bx
+        pop ax
+
+        ret
+
+;========================================
+show_string:
+        push cx
+        push ds
+        push es
+        push si
+        push di
+        mov cx,0
+
+showString:
+        mov cl,ds:[si]
+        jcxz showStringRet
+        mov es:[di],cl
+        add di,2
+        inc si
+        jmp showString
+
+showStringRet:
+        pop di
+        pop si
+        pop es
+        pop ds
+        pop cx
+        ret
+;========================================
+init_reg_show_string:
+        mov bx,string
+        mov ds,bx
+
+        mov bx,0B800H
+        mov es,bx
+        ret
+;========================================
+isShortDiv:
+        mov cx,dx
+        jcxz short_div
+
+        mov cx,10
+        push ax
+        mov bp,sp
+        call long_div
+        add sp,2
+        add cl,30H
+        mov es:[si],cl
+        dec si
+        jmp isShortDiv
+
+shortDivRet:
+        ret
+;========================================
+long_div:
+        mov ax,dx
+        mov dx,0
+        div cx
+        push ax
+        mov ax,ss:[bp+0]
+        div cx
+
+        mov cx,dx
+        pop dx
+        ret
+;========================================
+short_div:
+        mov cx,10
+        div cx
+        add dl,30H
+        mov es:[si],dl
+        mov cx,ax
+        jcxz shortDivRet
+
+        dec si
+        mov dx,0
+        jmp short_div
+
+;========================================
+show_year:
+        push ax
+        push bx
+        push cx
+        push ds
+        push es
+        push si
+        push di
+        mov bx,0B800H
+        mov es,bx
+
+        mov cx,4
+        add di,3*2  ;设置显示年份的左间距
+showYear:
+        mov al,ds:[si]
+        mov es:[di],al
+        add di,2
+        inc si
+        loop showYear
+
+        pop di
+        pop si
+        pop es
+        pop ds
+        pop cx
+        pop bx 
+        pop ax
+        ret
+;========================================
+init_reg_output_table:
+        mov bx,table
+        mov ds,bx
+
+        mov bx,string
+        mov es,bx
+        ret
+;========================================
+input_table:
+        call init_reg_input_table
+
+        mov si,0
+        mov di,0
+        mov bx,21*4*2
+
+        mov cx,21
+
+inputTable:
+        push ds:[si+0]
+        pop es:[di+0]
+        push ds:[si+2]
+        pop es:[di+2]
+
+        mov ax,ds:[si+21*4+0]
+        mov dx,ds:[si+21*4+2]
+        mov es:[di+5],ax
+        mov es:[di+7],dx
+
+        push ds:[bx]
+        pop es:[di+10]
+
+        div word ptr ds:[bx]
+        mov es:[di+13],ax
+
+        add si,4
+        add di,16
+        add bx,2
+
+        loop inputTable
+
+;               0123456789abcdef
+;    db 21 dup ('year summ ne ?? ')
+        ret
+
+;========================================
+init_reg_input_table:
+        mov bx,data
+        mov ds,bx
+
+        mov bx,table
+        mov es,bx
+        ret
+;========================================
+clear_screen:
+        mov bx,0
+        mov dx,0700H
+        mov cx,2000
+
+clear:  mov es:[bx],dx
+        add bx,2
+        loop clear
+        ret
+;========================================
+init_reg:
+        mov bx,0B800H
+        mov es,bx
+
+        mov bx,data
+        mov ds,bx
+        ret
+
+codesg ends
+end start
+```
