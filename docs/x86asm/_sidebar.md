@@ -14,3 +14,4 @@
 - 中断
 
     - [内中断](/x86asm/masm_interrupt.md)
+    - [int](/x86asm/masm_interrupt_int.md)
