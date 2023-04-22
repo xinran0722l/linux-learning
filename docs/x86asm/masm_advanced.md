@@ -1035,6 +1035,7 @@ assume cs:code
 data segment
 ;        db 'conversation',0
 ;        db 'hello'
+真的
 ;        db 'conversation',0
         db 'word',0
         db 'unix',0

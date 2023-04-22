@@ -15,3 +15,7 @@
 
     - [内中断](/x86asm/masm_interrupt.md)
     - [int](/x86asm/masm_interrupt_int.md)
+    - [port](/x86asm/masm_interrupt_port.md)
+    - [外中断](/x86asm/masm_interrupt_external.md)
+
+- 
