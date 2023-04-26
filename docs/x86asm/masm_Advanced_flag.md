@@ -12,7 +12,9 @@ flag 和其他寄存器不同，其他寄存器用来存放数据，整个寄存
 
 ![flag](../images/x86asm/flag_reg.png)
 
-flag de  1,3,5,12,13,14,15位在 8086CPU 中没有使用，不具有任何含义。而0,2,4，6,7,8,9,10,11 位都具有特殊的含义
+![flagToDebug](../images/x86asm/flag_to_debug.png) 
+
+flag 的 1,3,5,12,13,14,15位在 8086CPU 中没有使用，不具有任何含义。而0,2,4，6,7,8,9,10,11 位都具有特殊的含义
 
 ## ZF 标志
 
@@ -501,7 +503,112 @@ a   表示 above
 na  表示 not above
 ```
 
-注意它们所检测的标志位，都是 cmp 指令进行无符号数比较的时候，记录比较结果的标志位。比如 ```je, 检测 ZF 位```,当 ZF=1 时进行转移，如果在 je 前使用了 cmp 指令，那么 je 对 ZF 的检测，实际上就是间接地检测 cmp 的比较结果是否位两数相等
+注意它们所检测的标志位，都是 cmp 指令进行无符号数比较的时候，记录比较结果的标志位。比如 ```je, 检测 ZF 位```,当 ZF=1 时进行转移，如果在 je 前使用了 cmp 指令，那么 je 对 ZF 的检测，实际上就是间接地检测 cmp 的比较结果是否位两数相等。下面看一个例子
+
+### 示例代码
+
+编程实现如下功能：
+
+如果(ah)=(bh),则(ah)=(ab)+(ah),否则(ah)=(ah)+(bh)
+
+```asm
+    cmp ah,bh
+    je s
+    add ah,bh
+    jmp short ok
+s:  add ah,ah
+ok: ...
+```
+
+***
+
+演示 cmp 和 je 系列指令配合使用：
+
+data 段中的 8 个字节定义如下：
+
+```asm
+data  segment
+    db 8,11,8,1,8,5,64,38
+data ends
+```
+
+(1) 编程：统计 data 段中数值为 8 的字节的个数，用 ax 保存统计结果
+
+```asm
+    mov ax,data
+    mov ds,ax
+    mov bx,0  ;ds:bx 指向第一个字节
+    mov ax,0  ;累加器
+
+    mov cx,8
+
+s:  cmp byte ptr ds:[bx],8  ;和 8 进行比较
+    jne next  ;不相等就跳转
+    inc ax    ;相等就累加计数器ax
+next: inc bx  ;指向下一个数据
+    loop s
+```
+
+这个程序也可以换个写法：
+
+```asm
+    mov ax,data
+    mov ds,ax
+    mov bx,0  ;ds:bx 指向第一个字节
+    mov ax,0  ;累加器
+
+    mov cx,8
+
+    cmp byte ptr ds:[bx],8  ;和 8 进行比较
+    je ok           ;相等就跳转至累加器
+    jmp short next  ;不等就跳转至 next
+ok: inc ax
+next: inc bx
+    loop s
+```
+
+比起第一个程序，它直接遵循了 *等于 8 则计数器加 1*  的原则，用 je 指令检测等于 8 的情况，但是没有第一个程序精简。
+
+***
+
+(2) 编程：统计 data 段中数值大于 8 的字节的个数，用 ax 保存统计结果
+
+
+```asm
+    mov ax,data
+    mov ds,ax
+    mov bx,0
+    mov ax,0
+
+    mov cx,8
+
+s:  cmp byte ptr ds:[bx],8
+    jna next
+    inc ax
+next: inc bx
+    loop s
+```
+
+***
+
+(3) 编程：统计 data 段中数值小于 8 的字节的个数，用 ax 保存统计结果
+
+```asm
+    mov ax,data
+    mov ds,ax
+    mov bx,0
+    mov ax,0
+    
+    mov cx,8
+
+    cmp byte ptr ds:[bx],8
+    jnb next
+    inc ax
+next: inc bx
+    loop s
+```
+
+
 
 ## DF 标志和串传送指令
 
