@@ -619,6 +619,8 @@ DF=0    每次操作后 si、di 递增
 DF=1    每次操作后 si、di 递减
 ```
 
+### movsb,movsw,rep
+
 下面看一个串传送指令
 
 ```x86asm
@@ -685,6 +687,8 @@ s:movsw
   loop s
 ```
 
+### cld,std
+
 由于 flag 的 DF 位决定着串传送指令执行后，si 和 di 改变的方向，所以 CPU 应该提供相应的指令来对 DF 位进行设置，从而使开发者能够决定传送的方向
 
 8086CPU 提供下面两条指令对 DF 位进行设置
@@ -698,6 +702,7 @@ std 指令：将 flag 寄存器的 DF 位置 1
 
 1. 编程，用串传送指令，将data段中的第一个字符串复制到它后面的空间中
 
+
 ```x86asm
 data segment
     db 'Welcome to masm!'
@@ -707,13 +712,23 @@ data ends
 code segment
     mov ax,data
     mov ds,ax
-
     mov si,0    ;ds:si 指向 data:0
     mov es,ax
     mov di,16   ;es:di 指向 data:0010
+
     mov cx,16   ; rep 循环 16次
     cld         ;设置 DF=0,正向传送
     rep movsb
+
+;下面为 loop 写法
+;s:  mov al,ds:[si]
+;    mov es:[di],al
+;    inc si
+;    inc di
+;    loop s
+
+    mov ax,4c00H
+    int 21H
 code ends
 ```
 
@@ -754,6 +769,18 @@ pushf 和 popf 为直接访问 flag 寄存器提供了一种方法
 下图是 Debug 对我们已知的标志位的表示
 
 ![flagInDebugInfo](../images/x86asm/flag_in_debug_info.png)
+
+
+## 实验11 编写子程序
+
+编写子程序,将包含任意字符，以 0 结尾的字符串中的小写字母转变为大写字母。描述如下
+
+```asm
+名称：letterc
+功能：将以 0 结尾的字符串中的小写字母转为大写字母
+参数：ds:si 指向字符串首地址
+注意：需要转化的是小写字母a～z,不是其他字符
+```
 
 
 
