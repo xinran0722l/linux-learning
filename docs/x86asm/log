@@ -1,29 +1,79 @@
 assume cs:code
 data segment
-    db 'Welcome to Linux'
-    db 16 dup (0)
+    db 'conversation',0
 data ends
 code segment
 start:
+    ; capital 的安装程序
+    mov ax,cs
+    mov ds,ax
+    mov si,offset capital   ;ds:si 指向源程序地址
+    mov ax,0
+    mov es,ax
+    mov di,200H   ;es:di 指向传输的目的地址
+    mov cx,offset capitalEnd - offset capital ;传输长度
+    cld     ;传输方向为正
+    rep movsb 
+
+    ; 设置中断向量表
+    mov ax,0
+    mov es,ax
+    mov word ptr es:[7cH*4],200H  ;设置偏移地址
+    mov word ptr es:[7cH*4+2],0   ;设置段地址
+
+    mov bx,160*2+40   ;设置显示位置(改变前)
+    call show_string  
+
+    ;执行 int 7ch 
     mov ax,data
     mov ds,ax
-    mov es,ax
-    mov si,0  ; ds:si 指向 data:0
-    mov di,16 ; es:di 指向 data:0010
+    mov si,0
+    int 7ch
 
-    mov cx,16 ; rep 循环 16 次
+    ; 再次设置显示位置(改变后)
+    mov bx,160*4+40
+    call show_string
 
-    cld   ; 设置 DF=0,正向传送
-    rep movsb ; 根据 cx，循环传送
-
-;s:  mov al,ds:[si]
-;    mov es:[di],al
-;    inc si
-;    inc di
-;    loop s
-
+    ; 程序正常返回
     mov ax,4c00H
     int 21H
+    ; 改变字符串
 
+capital:
+    mov ax,data
+    mov ds,ax
+    mov si,0
+    mov ch,0
+    
+cg: mov cl,ds:[si]
+    and cl,11011111B
+    jcxz cgEnd
+    mov ds:[si],cl
+    inc si
+    jmp short cg
+
+cgEnd:
+    iret
+capitalEnd:
+    nop
+
+; 显示字符串
+show_string:
+    mov ax,data
+    mov ds,ax
+    mov si,0
+    mov ax,0B800H
+    mov es,ax
+    mov di,0
+
+    mov ah,00010100B
+    mov cx,12
+s:  mov al,ds:[si]
+    mov es:[di+bx],ax
+    add di,2
+    inc si
+    loop s
+
+    ret
 code ends
 end start

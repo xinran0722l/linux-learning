@@ -119,10 +119,14 @@ CPU 执行 int 7ch 指令进入中断例程之前，flag 寄存器、当前的 C
 
 int 指令和 iret 指令的配合使用与 call 指令和 ret 指令的配合使用具有相似的思路
 
+***
+
 2. 编写、安装中断 7ch 的中断例程
 
 功能：将一个全是字母、以 0 借位的字符串，转化为大写
+
 参数：ds:si 指向字符串的首地址
+
 举例：将 data 段中的字符串转化为大写
 
 ```x86asm
@@ -178,6 +182,96 @@ ok:     pop si
 
 capitalend: nop
 
+code ends
+end start
+```
+
+### 优化后的 int 7cH 练习
+
+功能：将一个全是字母、以 0 借位的字符串，转化为大写
+
+参数：ds:si 指向字符串的首地址
+
+举例：将 data 段中的字符串转化为大写
+
+```asm
+assume cs:code
+data segment
+    db 'conversation',0
+data ends
+code segment
+start:
+    ; capital 的安装程序
+    mov ax,cs
+    mov ds,ax
+    mov si,offset capital   ;ds:si 指向源程序地址
+    mov ax,0
+    mov es,ax
+    mov di,200H   ;es:di 指向传输的目的地址
+    mov cx,offset capitalEnd - offset capital ;传输长度
+    cld     ;传输方向为正
+    rep movsb 
+
+    ; 设置中断向量表
+    mov ax,0
+    mov es,ax
+    mov word ptr es:[7cH*4],200H  ;设置偏移地址
+    mov word ptr es:[7cH*4+2],0   ;设置段地址
+
+    mov bx,160*2+40   ;设置显示位置(改变前)
+    call show_string  
+
+    ;执行 int 7ch 
+    mov ax,data
+    mov ds,ax
+    mov si,0
+    int 7ch
+
+    ; 再次设置显示位置(改变后)
+    mov bx,160*4+40
+    call show_string
+
+    ; 程序正常返回
+    mov ax,4c00H
+    int 21H
+    ; 改变字符串
+
+capital:
+    mov ax,data
+    mov ds,ax
+    mov si,0
+    mov ch,0
+    
+cg: mov cl,ds:[si]
+    and cl,11011111B
+    jcxz cgEnd
+    mov ds:[si],cl
+    inc si
+    jmp short cg
+
+cgEnd:
+    iret
+capitalEnd:
+    nop
+
+; 显示字符串
+show_string:
+    mov ax,data
+    mov ds,ax
+    mov si,0
+    mov ax,0B800H
+    mov es,ax
+    mov di,0
+
+    mov ah,00010100B
+    mov cx,12
+s:  mov al,ds:[si]
+    mov es:[di+bx],ax
+    add di,2
+    inc si
+    loop s
+
+    ret
 code ends
 end start
 ```

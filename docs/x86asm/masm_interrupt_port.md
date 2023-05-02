@@ -70,6 +70,25 @@ PC 机中，有一个 CMOS RAM 芯片，一般简称为 *CMOS* 。此芯片特�
     - 将 2 送入端口 70H
     - 从端口 71H 读出 2 号单元的内容
 
+### 检测点 14.1
+
+1. 编程：读取 CMOS RAM 的 2 号单元的内容
+
+```asm
+mov al,2
+out 70H,al
+in al,71H
+```
+
+2. 编程：向 CMOS RAM 的 2 号单元写入 0
+
+```asm
+mov al,2
+out 70H,al
+mov al,0
+out 71H,al
+```
+
 ## shl 和 shr 指令
 
 shl 和 shr 是逻辑移位指令。

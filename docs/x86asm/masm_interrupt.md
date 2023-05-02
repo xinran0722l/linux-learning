@@ -79,7 +79,7 @@ CPU 收到中断信息后，要对中断信息进行处理，首先将引发中�
 3. 设置 flag 寄存器的第 8 位 TF 和第 9 位 IF 的值为0(这一步的目的在下面)
 4. CS 的内容入栈
 5. IP 的内容入栈
-6. 从内存地址为中断类型码*4 和中断类型码*4+2 的两个字单元中读取中断处理程序的入口地址设置 IP 和 CS
+6. 从内存地址为*中断类型码 4 和中断类型码 4+2* 的两个字单元中读取中断处理程序的入口地址设置 IP 和 CS
 
 CPU 在收到中断信息后，如果处理该中断信息，就完成一个由硬件自动执行的中断过程(开发者无法改变这个过程中所要做的工作)。中断过程的主要任务就是用中断类型码在中断向量表中找到
 中断处理程序的入口地址，设置 CS 和 IP。因为中断处理程序执行完成后，CPU 还要回过头来继续执行被中断的程序，所以要在设置 CS、IP 之前，先将它们保存起来。
@@ -275,7 +275,6 @@ end start
 
 可以利用编译器来计算 do0 的长度，具体如下
 
-
 ```x86asm
 assume cs:code
 code segment
@@ -409,6 +408,66 @@ mov ax,0
 mov es,ax
 mov word ptr es:[0*4],200H
 mov word ptr es:[0*4+2],0
+```
+
+### 完整的 do0 代码
+
+```asm
+assume cs:code
+code segment
+start:
+    ;do0 安装程序
+    mov ax,cs
+    mov ds,ax
+    mov si,offset do0 ; ds:si 指向源地址
+    mov ax,0
+    mov es,ax
+    mov di,200H     ; es:di 指向目的地址
+    mov cx,offset do0end - offset do0 ; cx 传输长度
+    cld             ; 传输方向为正
+    rep movsb
+
+    ;设置中断向量表
+    mov ax,0 
+    mov es,ax
+    mov word ptr es:[0*4],200H  ;存放偏移地址
+    mov word ptr es:[0*4+2],0   ;存放段地址
+
+    ;除 0 溢出的测试代码
+    mov ax,1000H
+    mov bh,1
+    div bh
+   
+    mov ax,4c00H
+    int 21H
+
+    ;显示字符串 "Overflow!"
+do0:
+    jmp short do0start
+    db 'Overflow!'  ;定义在代码段，防止内存回收
+do0start:
+    mov ax,cs
+    mov ds,ax
+    mov si,202H   ; ds:si 指向字符串
+
+    mov ax,0B800H
+    mov es,ax
+    mov di,12*160+36*2  ;es:di 指向显存空间
+
+    mov cx,9            ;设置字符串长度
+s:  mov al,ds:[si]
+    mov es:[di],al
+    inc si
+    add di,2
+    loop s
+
+    mov ax,4c00H
+    int 21H
+do0end:
+    nop
+
+code ends
+end start
 ```
 
 ## 单步中断
