@@ -227,7 +227,112 @@ start:  mov al,8
 
         mov ax,4c00H
         int 21H
-end start
 code ends
+end start
+```
 
+### 实验14,访问 CMOS RAM 显示时间
+
+以 *年/月/日 时：分：秒* 的格式，显示当前的日期、时间 
+
+```asm
+;该代码可无限显示时间
+assume cs:code
+code segment
+; 年 月 日 时 分 秒
+; 9  8  7  4  2  0
+    s1:   db 9,8,7,4,2,0
+    s2:   db 'YY/MM/DD hh:mm:ss'
+
+start:
+
+interval:
+    call showTimeStyle
+    jmp interval
+
+    mov ax,4c00H
+    int 21H
+
+;===================================
+showTimeStyle:
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    push di
+    push bp
+    push ds
+    push es
+
+    mov ax,cs
+    mov ds,ax
+    mov si,offset s1
+    mov bp,offset s2
+    mov di,offset s2
+    mov bx,0
+    mov cx,6
+
+s:  mov al,ds:[si]
+    call get_CMOS_data
+    call handle_CMOS_data
+    call write_data_segment
+    call show_date_time
+    add bx,2
+    inc si
+    loop s
+
+    mov cx,11
+s5: call show_date_time
+    add bx,2
+    loop s5
+
+    pop ax
+    pop bx
+    pop cx
+    pop dx
+    pop si
+    pop di
+    pop bp
+    pop ds
+    pop es
+    ret
+
+;===================================
+get_CMOS_data:
+        out 70H,al
+        in al,71H
+        ret
+
+;===================================
+handle_CMOS_data:
+        push cx
+        mov ah,al
+        mov cl,4
+        shr ah,cl
+        and al,00001111B
+
+        add ah,30H
+        add al,30H
+        pop cx
+        ret
+
+;===================================
+write_data_segment:
+        mov ds:[bp],ah
+        mov ds:[bp+1],al
+        add bp,3
+        ret
+;===================================
+show_date_time:
+        mov dx,0B800H
+        mov es,dx
+        mov al,ds:[di]
+        mov ah,00000001B
+        inc di
+        mov es:[160*12+40*2+bx],ax  ;显示月份的十位数码
+        ret
+
+code ends
+end start
 ```
