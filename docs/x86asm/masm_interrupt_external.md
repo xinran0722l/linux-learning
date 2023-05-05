@@ -54,11 +54,12 @@ CS,IP 入栈
 
 现在，我们可以解释中断过程中将 IF 置为 0 的原因了。将 IF 置 0 的原因就是：`在进入中断处理程序后，禁止其他的可屏蔽中断` 
 
+#### cli、sti
 当然，如果在中断处理程序中需要处理可屏蔽中断，可以用指令将 IF 置为 1。8086CPU 提供的设置 IF 的指令如下
 
 ```asm
-sti, 设置 IF=1
-cli, 设置 IF=0
+sti, 设置 IF=1  允许可屏蔽中断触发
+cli, 设置 IF=0  屏蔽其他的可屏蔽中断
 ```
 
 ***
@@ -322,5 +323,244 @@ call dword ptr ds:[0] ;CS,IP 入栈，(IP)=((ds)*16+0),(CS)=((ds)*16+2)
 
 完整的程序如下
 
+```asm
+assume cs:code
+stack segment
+    db 128 dup (0)
+stack ends
+data segment
+    dw 0,0        ;存放原 int 9 的中断例程
+data ends
+code segment
+start: 
+    mov ax,stack  ;设置栈
+    mov ss,ax
+    mov sp,128
+
+    mov ax,data   ; ds 保存原本的 int 9 中断例程入口地址
+    mov ds,ax
+
+    mov ax,0
+    mov es,ax     ; es 指向中断向量表
+    cli
+
+    ;将原本 int 9 中断例程的入口地址保存在 ds:0,ds:2 单元中
+    push es:[9*4]
+    pop ds:[0]
+    push es:[9*4+2]
+    pop ds:[2]
+
+    ;在中断向量表中设置新的 int 9 中断例程的入口地址
+    mov word ptr es:[9*4],offset Int9
+    mov es:[9*4+2],cs
+    sti
+
+    mov ax,0B800H
+    mov es,ax
+    mov ah,'a'
+s:  mov es:[160*12+40*2],ah
+    call delay   ;调用延时程序
+    inc ah
+    cmp ah,'z'
+    jna s
+
+    ;将中断向量表中 int 9 中断例程的入口恢复为原来的地址
+    mov ax,0
+    mov es,ax
+    cli   ;cli 和 sti 为检测点 15.1 的第二问，在设置 int 9 中断例程时屏蔽外中断
+    push ds:[0]
+    pop es:[9*4]
+    push ds:[2]
+    pop es:[9*4+2]
+    sti
+
+    mov ax,4c00H
+    int 21H
+
+;============================================
+delay:
+    push dx
+    push ax
+    mov dx,10H
+    mov ax,0
+s1: sub ax,1
+    sbb dx,0
+    cmp ax,0
+    jne s1
+    cmp dx,0
+    jne s1
+    pop ax
+    pop dx
+    ret
+
+;============================================
+Int9:
+    push ax
+    push bx
+    push es
+
+    in al,60H
+    pushf
+;    pushf          ;此处向下5行，为检测点15.1的第一问，这5行可注释，不影响题目要求
+;    pop bx
+;    and bh,11111100B
+;    push bx
+;    popf
+    call dword ptr ds:[0] ;模拟 int 指令，调用原本的 int 9 中断例程
+
+    cmp al,1
+    jne Int9Ret
+
+    mov ax,0B800H
+    mov es,ax
+    inc byte ptr es:[160*12+40*2+1] ;字符属性 +1,改变颜色
+
+Int9Ret:
+    pop es
+    pop bx
+    pop ax
+    iret
+
+code ends
+end start
+```
 
 > 本章中所有关于键盘的程序，因要直接访问真是的硬件，必须在 DOS 实模式下运行。在 DOSBOX 下运行，可能会出现一些和硬件工作原理不符合的现象
+
+## 安装新的 int 9 中断例程
+
+下面，我们安装一个新的 int 9 中断例程，使得原 int 9 中断例程的功能得到扩展
+
+任务：安装一个新的 int 9 中断例程
+
+功能：在 DOS 下，按 F1 键后改变当前屏幕的显示颜色，其他键照常处理
+
+***
+
+现在分析一下：
+
+(1) 改变屏幕的颜色
+
+改变从 B8000H 开始的 4000 个字节中所有奇数地址单元中的内容，当前屏幕的显示颜色即发生改变。程序如下：
+
+```asm
+    mov ax,0B800H
+    mov es,ax
+    mov bx,1
+    mov cx,2000
+s:  inc byte ptr es:[bx]
+    add bx,2
+    loop s
+```
+***
+
+(2) 其他键照常处理
+
+可以调用原 int 9 中断处理程序，来处理其他的键盘输入
+
+***
+
+(3) 原 int 9 中断例程入口地址的保存
+
+因为在编写新的 int 9 中断例程中要调用原 int 9 中断例程，所以，要保存原 int 9 中断例程的入口地址。
+
+保存在哪里？显然不能保存在安装程序中，因为安装程序返回后地址将丢失。我们将地址保存在 0:200 单元处
+
+***
+
+(4) 新 int 9 中断例程的安装
+
+这个问题前面有讨论，可以将新的 int 9 中断例程安装在 0:204 处
+
+完整的程序如下：
+
+
+```asm
+assume cs:code
+stack segment
+    db 128 dup (0)
+stack ends
+code segment
+start: 
+    mov ax,stack  ;设置栈
+    mov ss,ax
+    mov sp,128
+    push cs       ; ds 指向程序段
+
+    pop ds
+
+    mov ax,0
+    mov es,ax     ; es 指向中断向量表
+
+    mov si,offset new_int9  ; ds:si 指向原地址
+    mov di,204H   ; es:di 指向中断向量表（目标地址）
+    mov cx,offset new_int9_end - offset new_int9  ; cx 为传输的长度
+    cld           ;传输方向为正
+    rep movsb
+
+    ; 保存原 int 9 中断例程的入口地址至 0:200 处
+    push es:[9*4]
+    pop es:[200H]
+    push es:[9*4+2]
+    pop es:[202H]
+
+    ; 写入 int 9 中断例程的地址至中断向量表
+    cli
+    mov word ptr es:[9*4],204H
+    mov word ptr es:[9*4+2],0
+    sti
+
+    mov ax,4c00H
+    int 21H
+
+new_int9:
+    push ax
+    push bx
+    push cx
+    push es
+
+    in al,60H
+    
+    pushf
+    call dword ptr cs:[200H]  ;当此中断例程执行时 (CS)=0
+
+    cmp al,3BH  ;F1 的扫描码为 3BH
+    jne int9Ret
+
+    ;改变显存属性
+    mov ax,0B800H
+    mov es,ax
+    mov bx,1
+    mov cx,2000
+s:  inc byte ptr es:[bx]
+    add bx,2
+    loop s
+
+int9Ret:
+    pop es
+    pop cx
+    pop bx 
+    pop ax
+    iret
+
+new_int9_end:
+    nop
+
+code ends
+end start
+```
+
+## 小结
+
+本章通过对键盘输入的处理，了解了 CPU 对外设输入的通常处理方法。即：
+
+1. 外设的输入送入端口
+2. 向 CPU 发出外中断(可屏蔽中断)信息
+3. CPU 检测到可屏蔽中断信息，如果 IF=1,CPU 在执行完当前指令后响应中断，执行相应的中断例程
+4. 可在中断例程中实现对外设输入的处理
+
+`端口和中断机制，是 CPU 进行 I/O 的基础`
+
+
+
+
