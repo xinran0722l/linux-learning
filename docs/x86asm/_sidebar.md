@@ -25,3 +25,4 @@
 - 汇编思想
 
     - [汇编技巧](/x86asm/masm_skill.md) 
+    - [BIOS读写磁盘](/x86asm/masm_BIOS_IO_disk.md) 

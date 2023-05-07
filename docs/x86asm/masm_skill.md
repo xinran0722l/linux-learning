@@ -545,3 +545,190 @@ sret:
     pop bx
     ret
 ```
+
+### 实验16
+
+安装一个心得 int 7CH 中断例程，为显示输出提供如下功能的子程序
+
+1. 清屏
+2. 设置前景色
+3. 设置背景色
+4. 向上滚动一行
+
+参数说明：
+
+1. 用 ah 传递功能号：0 表示清屏，1 表示设置前景色，2 表示设置背景色， 3 表示向上滚动一行
+2. 对于 1、2 号功能，用 al 传送颜色值，(al) = {0,1,2,3,4,5,6,7}
+
+```asm
+assume cs:code
+code segment
+
+;直接定址表(关键点)
+setscreen:
+    jmp short set
+; 若要取消注释，需要将 start: 处的安装程序和中断向量表的设置改写到该段之前
+;    table   dw offset sub1 - offset setscreen + 200H 
+;            dw offset sub2 - offset setscreen + 200H
+;            dw offset sub3 - offset setscreen + 200H
+;            dw offset sub4 - offset setscreen + 200H
+
+; 要注意在 0:200 处，4个子程序的 cs 和 ip 是哪个地址
+    table   dw offset sub1 + 200H
+            dw offset sub2 + 200H
+            dw offset sub3 + 200H
+            dw offset sub4 + 200H
+
+
+set:
+    push ax
+    push bx
+    push es
+
+    cmp ah,3   ; 判断功能号是否大于 3
+    ja sret
+    mov bx,0
+    mov es,bx  ; es:bx 指向0:200 处的四个子程序
+    mov bl,ah
+    mov bh,0
+    add bx,bx  ;根据 ah 中的功能号计算对应子程序在 table 表中的偏移
+    add bx,offset table - offset setscreen + 200h
+
+    call word ptr es:[bx] ;调用对应的功能子程序
+
+sret:
+    pop bx
+    pop ax
+    pop es
+    iret
+
+
+sub1:
+    push bx
+    push cx
+    push es
+    mov bx,0B800H
+    mov es,bx
+    mov bx,0
+    mov cx,2000
+
+sub1s:
+    mov byte ptr es:[bx],' '
+    add bx,2
+    loop sub1s
+
+    pop es
+    pop cx
+    pop bx
+    ret
+
+sub2:
+    push bx
+    push cx
+    push es
+
+    mov bx,0B800H
+    mov es,bx
+    mov bx,1
+    mov cx,2000
+
+sub2s:
+    and byte ptr es:[bx],11111000B
+    or es:[bx],al
+    add bx,2
+    loop sub2s
+
+    pop es
+    pop cx
+    pop bx
+    ret
+
+sub3:
+    push bx
+    push cx
+    push es
+
+    mov cl,4
+    shl al,cl
+    mov bx,0B800H
+    mov es,bx
+    mov bx,1
+    mov cx,2000
+
+sub3s:
+    and byte ptr es:[bx],1000111B
+    or es:[bx],al
+    add bx,2
+    loop sub3s
+
+    pop es
+    pop cx
+    pop bx
+    ret
+
+
+sub4:
+    push cx
+    push si
+    push di
+    push es
+    push ds
+
+    mov si,0B800H
+    mov es,si
+    mov ds,si
+    mov si,160 ; ds:di 指向第 n + 1 行
+    mov di,0   ; es:di 指向第 n 行
+    cld
+    mov cx,24  ;共复制24行
+
+sub4s:
+    push cx
+    mov cx,160
+    rep movsb  ;复制
+    pop cx
+    loop sub4s
+
+    mov cx,80
+    mov si,0
+sub4s1:
+    mov byte ptr [160*12+si],' ' ;清空最后一行
+    add si,2
+    loop sub4s1
+
+    pop ds
+    pop es
+    pop di
+    pop si
+    pop cx
+    ret
+
+setscreen_end:
+    nop
+
+start:
+    ;安装在 0:200 处
+    mov bx,cs
+    mov ds,bx
+    mov si,offset setscreen
+    mov bx,0
+    mov es,bx
+    mov di,200H
+    mov cx,offset setscreen_end - offset setscreen
+    cld
+    rep movsb
+
+    ;设置中断向量表(触发 int 7CH 就会调用下面的4个子程序)
+    mov bx,0
+    mov es,bx
+    mov word ptr es:[7ch*4],200H
+    mov word ptr es:[7ch*4+2],0
+
+    mov ax,4c00H
+    int 21H
+
+code ends
+end start
+```
+
+> 实验16的难点在于怎么正确找到我们子程序的入口，也就是当我们把我们写的中断例程安装到 0:200h 之后怎么才能找到我们的子程序。
