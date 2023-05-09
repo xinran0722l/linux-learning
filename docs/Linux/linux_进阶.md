@@ -1398,6 +1398,189 @@ UDP没有报文，TCP有可靠的报文交互
 UDP支持一对一，一对多，多对一，多对多的交互通信
 ```
 
+### netstat
+
+- 显示网络连接情况，路由表信息，端口状态，网络连接情况等
+- 一个进程服务，运行之后，会暴露一个端口号，并产生相应的进程信息
+
+```bash
+#查看所有的网络连接情况
+$ netstat -an
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State
+udp        0      0 127.0.0.1:323           0.0.0.0:*
+udp6       0      0 ::1:323                 :::*
+Active UNIX domain sockets (servers and established)
+Proto RefCnt Flags       Type       State         I-Node   Path
+unix  2      [ ACC ]     STREAM     LISTENING     18416    /run/WSL/1_interop
+unix  2      [ ACC ]     STREAM     LISTENING     22545    /run/WSL/1_interop
+...
+
+#参数解释
+#-a	显示all所有的socket(套接字)信息
+#-n	显示数字地址信息而非主机名
+
+#常见字段解释
+proto	套接字使用的协议
+Recv-Q	连接这个套接字的用户，还未拷贝的字节数
+Send-Q	远程主机还未确认的字节数
+
+Local address	套接字(一个连接情况)本地的地址和端口号
+
+Forign Address	套接字的远程主机地址和端口号
+
+State	套接字的运行情况
+Listen	监听中
+
+
+#一些中啊哟的套接字连接情况的参数
+ESTABLISHED	套接字由一个有效连接
+SYN_SENT	套接字尝试建立一个连接
+SYN_RECV	从网络上收到一个连接请求
+FIN_WAIT1	套接字已关闭，连接正在断开
+FIN_WAIT2	连接已关闭，套接字等待远程方中止
+TIME_WAIT	在关闭之后，套接字等待处理仍然在网络中的分组
+CLOSED	套接字未用
+CLOSE_WAIT	远程方已关闭，等待套接字关闭
+LAST_ACK	远程方中止，套接字已关闭，等待确认
+LISTEN	套接字监听进来的连接，如果不设置 --listening (-l)或 --all(-a)选项，将不会显示这些连接
+CLOSING	套接字都已关闭，而还未把所有数据发出
+UNKNOWN	套接字状态未知
+```
+
+```bash
+#查看本机上正在运行的所有端口情况及进程情况
+$ netstat -tunlp
+(No info could be read for "-p": geteuid()=1000 but you should be root.)
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+udp        0      0 127.0.0.1:323           0.0.0.0:*                           -
+udp6       0      0 ::1:323                 :::*                                -
+
+#参数解释
+#-t	显示出TCP的连接情况
+#-u	显示出UDP的连接情况
+#-n	不进行dns解析
+#-l	只显示正在监听中的套接字情况
+#-p	显示出套接字所属的进程和进程名情况
+
+
+#本地回环地址，用于机器间内部应用通信，外人无法访问，每个机器都有自己的127.0.0.1
+127.0.0.1
+
+0.0.0.0	#绑定机器所有的网卡地址
+
+
+#检查是否运行了3306端口(3306是mysql的默认端口)
+netstat -tunlp | grep 3306	
+```
+- 显示系统的路由表情况
+
+```bash
+$ netstat -rn	#等同于 netstat -n 但两者输出不同
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+0.0.0.0         172.23.144.1    0.0.0.0         UG        0 0          0 eth0
+172.23.144.0    0.0.0.0         255.255.240.0   U         0 0          0 eth0
+```
+
+- 显示网络的接口情况
+
+```bash
+$ netstat -i
+Kernel Interface table
+Iface      MTU    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
+eth0      1500      427      0      0 0            15      0      0      0 BMRU
+lo       65536        0      0      0 0             0      0      0      0 LRU
+
+#字段解释
+Iface	网络设备的名字
+MTU	最大的传输单元，单位是字节
+
+RX-OK/TX-OK	正确接收了多少数据包，发送了多少数据包
+RX-ERR/TX-ERR	接收，发送数据包的时候，丢了多少数据包
+RX-OVR/TX-OVR	由于错误遗失了多少数据包
+FLG标记
+	L 是回环地址的含义
+	R 这个网络接口正在运行中
+	U 接口正处于活动的状态
+	B 设置了广播地址
+	M 接收所有的数据包
+	O 表示在该接口上禁止arp
+	P 端对端的连接
+
+TX-ERR RX-ERR最好是0，否则表示网络状态不健康，有丢包的情况
+```
+
+- 查看服务器监听
+
+```bash
+netstat -tunlp | grep 3306	#监听数据库是否运行
+netstat -tunlp | grep 80	#监听web服务是否运行
+netstat -tunlp | grep 443	#监听https是否运行
+...
+```
+
+
+
+### ss 命令
+
+ss 是新的 `netstat`。ss 命令选项的含义与 netstat 基本相同，输出也几乎相同。
+
+- eg: 查看本地 80 端口的监听进程
+    * netstat: `netstat - tunlp | grep 80`
+    * ss: `ss -ntpul | grep 80`
+
+- 查看本地 80 端口的监听进程
+
+```sh
+> ss -ntpul | grep 80
+tcp   LISTEN 0      4096         0.0.0.0:80         0.0.0.0:*                                          
+tcp   LISTEN 0      4096            [::]:80            [::]:*                                          
+```
+
+- 显示所有的socket套接字连接情况
+
+```bash
+$ ss -an
+Netid  State    Recv-Q  Send-Q                          Local Address:Port            Peer Address:Port        Process
+nl     UNCONN   0       0                                           0:-466038966                  *
+nl     UNCONN   0       0                                           0:0                           *
+nl     UNCONN   0       0                                           0:-53312904                   *
+nl     UNCONN   0       0                                           0:218                         *
+nl     UNCONN   0       0                                           0:-1836636604
+...
+```
+
+- 显示出所有正在监听中的套接字情况
+
+```bash
+$ ss -tunlp
+Netid      State       Recv-Q      Send-Q            Local Address:Port             Peer Address:Port      Process
+udp        UNCONN      0           0                     127.0.0.1:323                   0.0.0.0:*
+udp        UNCONN      0           0                         [::1]:323                      [::]:*
+```
+### lsof
+
+lsof 命令是功能强大的应用程序，可提供进程打开的文件的信息。在Linux，所有内容都是文件。你可以将套接字视为写入网络数据的文件。
+
+`要使用lsof命令获取具有所有TCP监听端口，请运行命令sudo lsof -nP -iTCP -sTCP:LISTEN`
+
+`-n`显示数字地址，不解析为主机名。`-p`不要将端口号转换为常用服务的名称。`-iTCP -sTCP:LISTEN` 仅显示 TCP 状态为 LISTEN 的网络文件。
+
+```sh
+# 查看 localhost:80 端口
+> sudo lsof -nP -iTCP:80 -sTCP:LISTEN
+COMMAND      PID USER   FD   TYPE  DEVICE SIZE/OFF NODE NAME
+docker-pr 122902 root    4u  IPv4 3472759      0t0  TCP *:80 (LISTEN)
+docker-pr 122911 root    4u  IPv6 3474843      0t0  TCP *:80 (LISTEN)
+
+# 查看 localhost:3000 端口
+> sudo lsof -nP -iTCP:3000 -sTCP:LISTEN
+COMMAND    PID    USER   FD   TYPE  DEVICE SIZE/OFF NODE NAME
+node    106891 qinghuo   20u  IPv6 3305364      0t0  TCP *:3000 (LISTEN)
+```
+
 ### ifconfig
 
 - 用于```配置网卡ip地址信息```，等网络参数信息
@@ -1639,152 +1822,6 @@ $ ip neighbour
 ```
 
 
-### netstat
-
-- 显示网络连接情况，路由表信息，端口状态，网络连接情况等
-- 一个进程服务，运行之后，会暴露一个端口号，并产生相应的进程信息
-
-```bash
-#查看所有的网络连接情况
-$ netstat -an
-Active Internet connections (servers and established)
-Proto Recv-Q Send-Q Local Address           Foreign Address         State
-udp        0      0 127.0.0.1:323           0.0.0.0:*
-udp6       0      0 ::1:323                 :::*
-Active UNIX domain sockets (servers and established)
-Proto RefCnt Flags       Type       State         I-Node   Path
-unix  2      [ ACC ]     STREAM     LISTENING     18416    /run/WSL/1_interop
-unix  2      [ ACC ]     STREAM     LISTENING     22545    /run/WSL/1_interop
-...
-
-#参数解释
-#-a	显示all所有的socket(套接字)信息
-#-n	显示数字地址信息而非主机名
-
-#常见字段解释
-proto	套接字使用的协议
-Recv-Q	连接这个套接字的用户，还未拷贝的字节数
-Send-Q	远程主机还未确认的字节数
-
-Local address	套接字(一个连接情况)本地的地址和端口号
-
-Forign Address	套接字的远程主机地址和端口号
-
-State	套接字的运行情况
-Listen	监听中
-
-
-#一些中啊哟的套接字连接情况的参数
-ESTABLISHED	套接字由一个有效连接
-SYN_SENT	套接字尝试建立一个连接
-SYN_RECV	从网络上收到一个连接请求
-FIN_WAIT1	套接字已关闭，连接正在断开
-FIN_WAIT2	连接已关闭，套接字等待远程方中止
-TIME_WAIT	在关闭之后，套接字等待处理仍然在网络中的分组
-CLOSED	套接字未用
-CLOSE_WAIT	远程方已关闭，等待套接字关闭
-LAST_ACK	远程方中止，套接字已关闭，等待确认
-LISTEN	套接字监听进来的连接，如果不设置 --listening (-l)或 --all(-a)选项，将不会显示这些连接
-CLOSING	套接字都已关闭，而还未把所有数据发出
-UNKNOWN	套接字状态未知
-```
-
-```bash
-#查看本机上正在运行的所有端口情况及进程情况
-$ netstat -tunlp
-(No info could be read for "-p": geteuid()=1000 but you should be root.)
-Active Internet connections (only servers)
-Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
-udp        0      0 127.0.0.1:323           0.0.0.0:*                           -
-udp6       0      0 ::1:323                 :::*                                -
-
-#参数解释
-#-t	显示出TCP的连接情况
-#-u	显示出UDP的连接情况
-#-n	不进行dns解析
-#-l	只显示正在监听中的套接字情况
-#-p	显示出套接字所属的进程和进程名情况
-
-
-#本地回环地址，用于机器间内部应用通信，外人无法访问，每个机器都有自己的127.0.0.1
-127.0.0.1
-
-0.0.0.0	#绑定机器所有的网卡地址
-
-
-#检查是否运行了3306端口(3306是mysql的默认端口)
-netstat -tunlp | grep 3306	
-```
-- 显示系统的路由表情况
-
-```bash
-$ netstat -rn	#等同于 netstat -n 但两者输出不同
-Kernel IP routing table
-Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
-0.0.0.0         172.23.144.1    0.0.0.0         UG        0 0          0 eth0
-172.23.144.0    0.0.0.0         255.255.240.0   U         0 0          0 eth0
-```
-
-- 显示网络的接口情况
-
-```bash
-$ netstat -i
-Kernel Interface table
-Iface      MTU    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
-eth0      1500      427      0      0 0            15      0      0      0 BMRU
-lo       65536        0      0      0 0             0      0      0      0 LRU
-
-#字段解释
-Iface	网络设备的名字
-MTU	最大的传输单元，单位是字节
-
-RX-OK/TX-OK	正确接收了多少数据包，发送了多少数据包
-RX-ERR/TX-ERR	接收，发送数据包的时候，丢了多少数据包
-RX-OVR/TX-OVR	由于错误遗失了多少数据包
-FLG标记
-	L 是回环地址的含义
-	R 这个网络接口正在运行中
-	U 接口正处于活动的状态
-	B 设置了广播地址
-	M 接收所有的数据包
-	O 表示在该接口上禁止arp
-	P 端对端的连接
-
-TX-ERR RX-ERR最好是0，否则表示网络状态不健康，有丢包的情况
-```
-
-- 查看服务器监听
-
-```bash
-netstat -tunlp | grep 3306	#监听数据库是否运行
-netstat -tunlp | grep 80	#监听web服务是否运行
-netstat -tunlp | grep 443	#监听https是否运行
-...
-```
-
-- 另一个网络查看工具ss
-
-```bash
-#显示所有的socket套接字连接情况
-$ ss -an
-Netid  State    Recv-Q  Send-Q                          Local Address:Port            Peer Address:Port        Process
-nl     UNCONN   0       0                                           0:-466038966                  *
-nl     UNCONN   0       0                                           0:0                           *
-nl     UNCONN   0       0                                           0:-53312904                   *
-nl     UNCONN   0       0                                           0:218                         *
-nl     UNCONN   0       0                                           0:-1836636604
-...
-```
-
-- 显示出所有正在监听中的套接字情况
-
-```bash
-$ ss -tunlp
-Netid      State       Recv-Q      Send-Q            Local Address:Port             Peer Address:Port      Process
-udp        UNCONN      0           0                     127.0.0.1:323                   0.0.0.0:*
-udp        UNCONN      0           0                         [::1]:323                      [::]:*
-```
-
 
 ### ping
 
@@ -1827,9 +1864,7 @@ nameserver 172.23.144.1
 ping 123.206.16.61	#ping一个正确存在的公网ip
 #出现 "Destination Host Unreachable"报错，说明网络配置有问题
 #需要正确配置ip信息，及路由网关地址
-
 ```
-
 
 ### telnet
 
@@ -1838,9 +1873,9 @@ ping 123.206.16.61	#ping一个正确存在的公网ip
 
 ```bash
 #检测远程主机22端口是否打开
-$ telnet 47.98.126.168 22	#已打开
-Trying 47.98.126.168...
-Connected to 47.98.126.168.
+$ telnet 47.98.126.192 22	#已打开
+Trying 47.98.126.192...
+Connected to 47.98.126.192.
 Escape character is '^]'.
 SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.5
 
@@ -1849,11 +1884,10 @@ Connection closed by foreign host.
 
 
 #远程主机80端口为打开或拒绝连接
-$ telnet 47.98.126.168 80
-Trying 47.98.126.168...
+$ telnet 47.98.126.192 80
+Trying 47.98.126.192...
 telnet: Unable to connect to remote host: Connection refused
 ```
-
 
 ### ssh
 
@@ -1870,8 +1904,8 @@ ssh 用户名@ip地址 -p 65534	#指定登录65534端口
 
 
 #ssh还可以执行远程主机的命令
-$ ssh qinghuo@47.98.126.168 "free -m"
-qinghuo@47.98.126.168's password:
+$ ssh qinghuo@ipAddress "free -m"
+qinghuo@ipAddress's password:
               total        used        free      shared  buff/cache   available
 Mem:           1879         333         210          14        1335        1360
 Swap:             0           0           0

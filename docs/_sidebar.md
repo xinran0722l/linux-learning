@@ -8,6 +8,7 @@
 - [Linux](/Linux/)
 - [Shell](/shell/)
 - [OS](/operation_system/)
-- [汇编](/x86asm/)
+- [8086](/x86asm/)
+- [Docker](/docker/) 
 - [Database](/Database/)
 - [Windows](/windows/)
