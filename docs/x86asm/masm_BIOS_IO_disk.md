@@ -531,6 +531,108 @@ rem():      描述性运算符，取余数
 tips: 用逻辑扇区号计算出 面号、磁道号、扇区号后，调用 int 13H 中断例程进行实际的读写
 ```
 
+## 如何让计算机唱歌
+
+![howPCSound](../images/x86asm/how_PC_sound.png) 
+
+让扬声器发出声音，是由 8253 和 8255 两个芯片来控制。对于声音来说有两个要素需要提供:`音高(声音的频率有多大)` 和 `音长(声音持续多长时间)`，不同音高和不同音长的组合，形成了一首歌
+
+![setTimer](../images/x86asm/sound_8253_setTimer.png) 
+
+![toggle](../images/x86asm/sound_8255_toggle.png) 
+
+![soundToTable](../images/x86asm/sound_to_num_table.png) 
+
+音符与数字的对应
+
+![newYear](../images/x86asm/sound_happy_new_year.png) 
+
+完整代码如下：
+
+```asm
+assume cs:code,ds:dataseg,ss:stackseg
+dataseg segment
+    mus_freq  dw  262,262,262,196,330,330,330,262
+            dw 262,330,392,392,349,330,294
+            dw 294,330,349,349,330,294,330,262
+            dw 262,330,294,196,247,294,262,-1
+
+    mus_time  dw  3 dup(12,12,25,25),12,12,50
+            dw 3 dup (12,12,25,25),12,12,50
+dataseg ends
+stackseg segment
+    db 100H dup (0)
+stackseg ends
+code segment
+
+start:
+    ;主程序
+    mov ax,stackseg
+    mov ss,ax
+    mov sp,100H
+    mov ax,dataseg
+    mov ds,ax
+    lea si,mus_freq   ;si -> 音符的频率的地址
+    lea di,mus_time   ;di -> 音符的音长的地址
+
+play:
+    mov dx,[si]
+    cmp dx,-1
+    je end_play
+    call sound
+    add si,2
+    add di,2
+    jmp play
+end_play:
+    mov ax,4c00H
+    int 21H
+
+;===============================================
+sound:
+    push ax
+    push dx
+    push cx
+
+    ;8253芯片(定时/计数器)的设置
+    mov al,0B6H
+    out 43H,al
+    mov dx,12H
+    mov ax,34DCh
+    div word ptr [si]
+    out 42H,al
+    mov al,ah
+    out 42H,al
+
+    ;设置8253芯片，控制扬声器的开/关
+    in al,61H
+    mov ah,al
+    or al,3
+    out 61H,al
+
+    ;延时一定的时长
+    mov dx,[di]
+wait1:
+    mov cx,28000
+delay:
+    nop
+    loop delay
+    dec dx
+    jnz wait1
+
+    ;恢复扬声器端口原值
+    mov al,ah
+    out 61H,al
+
+    pop cx
+    pop dx
+    pop ax
+    ret
+
+code ends
+end start
+```
+
+
 ## 课程设计2 
 
 开机后，CPU 自动进入到 FFFF:0 单元处执行，此处有一条跳转指令。CPU 执行该指令后，转去执行 BIOS 中的硬件系统检测和初始化程序
