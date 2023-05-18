@@ -1,5 +1,4 @@
 # python basic
-- ```python``` 的编辑器叫做 ```pycharm```
 - ```python```中貌似没有基础类型，全是对象类型，其中 数字， 字符串， 元组都是不可变对象
 
 ## id()
@@ -57,8 +56,10 @@ print("数字3.1415,宽度不限制,小数限制2,结果是：%.1f" % num2)
 ```
 
 ### string formating <-> 字符串格式化
+
 - ```python```中格式化字符串输出和```c```语言很相似,多个参数也是如此
 - 模板字符串.format(分割参数)
+
 ```py
 print("转换后的温度是: {:.2f}CF".format(argc))
                  此处的{}表示 槽，format中的实参会填充到 槽 中
@@ -79,6 +80,7 @@ print( "{1}:计算机{0}的cpu占用率为{2}%".format("2012-1-1","@@",10))
 
 - ```python```中，字符串有```正向递增序号```和 ```反向递减序号```
 - ```string[M:N:K]```, M缺失表示```至开头```, N缺失表示```至结尾```,K表示```步长```
+
 ```py
 #      -10 -9  -8  -7 -6  -5  -4  -3  -2   -1
 str = ["H","e","l","l","o","W","o","r","l","d"]
@@ -129,9 +131,8 @@ str.join(iter)    # ",".join("Hello") -> "H,e,l,l,o"
 ```
 
 
-## array(数组)?.list(列表)
-- ```python```中列表用```[]```表示
-- 运算符```in```可以用来判断其左值是否在右侧的```list```内
+
+
 
 ## eval  ->  评估函数
 ```eval```函数可以将字符串解析为```python```语句并执行
@@ -472,107 +473,7 @@ guess = eval(input())
 print("猜{}了".format("对" if guess == 99 else "错"))
 ```
 
-## 错误处理
-```py
-try :
-  <语句块1>
 
-except :
-  <语句块2>
-```
-
-```python
-try:
-    print(name)
-except:
-    print("出现了异常")
-# 出现了异常
-
-try:
-    print(name)
-except Exception as e: #Exception表示全部异常
-    print("出错啦\n",e)
-# 出错啦
-#  name 'name' is not defined
-```
-
-### 错误处理的高级使用
-
-```py
-try :
-  <语句块1>
-except :
-  <语句块2>
-[else ]:
-  <语句块3>
-[finally] :
-  <语句块4>
-
-- finally 对应语句块4一定执行
-- else 对应语句块3在不发生异常时执行
-```
-```python
-try:
-    print("name")
-except Exception as e:
-    print("Error")
-#    raise e
-else:
-    print("Not Error")
-# name
-# Not Error
-
-finally略
-```
-
-## define function
-
-### 函数的返回值
-```py
-def fact( n , m = 1):
-  s = 1
-  for i in range( 1, n + 1 ):
-    s *= i
-  return s // m , n , m
-
- fact( 10, 5 ) 的返回值为：
-  ( 725760, 10, 5 ) 是一个元组类型
-也可以写为
-a , b , c = fact( 10, 5 )
-print( a, b, c ) 
-725760 10 5
-```
-
-### 指定参数(关键参数)
-- 一般给函数传参要按照顺序，不按顺序就需要指定参数
-  * 但是定义时，关键参数必须放在位置参数之后
-
-```py
-def sayHi(name,age,like="Python"):
-```
-调用时可以
-```py
-sayHi("Jack",like="C++",age=16)
-```
-
-### lambda function
-- lambda 函数是一种匿名函数，使用关键字lambda定义
-- 函数名是返回结果， lambda函数用于定义简单的，能够在一行内表示的函数
-```py
-<函数名> = lambda <参数> : <表达式>
-```
-
-### 可变参数
-
-```py
-def fn( a , *argc ):
-  <函数体>
-# 其中 *argc 表示可变参数,表现为元组
-
-def fn(**kwargs):
-  <函数体>
-# **kwargs 表示为一个dict(字典)
-```
 
 ## 高阶函数 Higher-order function
 
@@ -1158,29 +1059,6 @@ z = C
 ['hello', 'world', 'ibm', 'apple']
 ```
 
-###  列表类型操作函数和方法
-| 函数 | 描述 | 
-| :---: | :---: |
-| ls[i] = x | 替换列表ls第i元素为x | 
-| ls[i:j:k] = lt | 用列表lt替换ls切片后所对应元素子列表 | 
-| del ls[i] | 删除列表ls中第i元素 | 
-| del ls[i:j:k] | 删除列表ls中第i到第j以k为步长的元素 | 
-| ls += lt | 更新列表ls，将列表lt元素增加到列表ls中 | 
-| ls *= lt | 更新列表ls，将其元素重复n次 | 
-
-
-| 方法 | 描述 | 
-| :---: | :---: |
-| ls.append( x ) | 在列表ls最后增加一个元素x | 
-| ls.extend(list_2) | 将列表list_2追加到ls后面 | 
-| ls.clear( x ) | 删除列表ls中所有元素 | 
-| ls.copy( x ) | 生成一个新列表，赋值ls中所有元素 | 
-| ls.insert( i, x ) | 在列表ls的第i位置增加元素x | 
-| ls.pop( i ) | 将列表ls中第i位置元素取出并删除 | 
-| ls.remove( x ) | 将列表ls中出现的第一个元素s删除 | 
-| ls.reverse() | 将列表ls中的元素反转 | 
-| ls.sort(key=func,reverse=bool) | key表示将ls中每个元素都传入函数，返回排序的依据<br/>reverse表示翻转 | 
-
 ```python
 #根据数字大小进行排序
 ls = [["a",33],["b",66],["c",11]]
@@ -1195,27 +1073,4 @@ print(ls)
 - 列表更加灵活，他是最常用的序列类型
 - 最主要作用：表示一组有序数据，进而操作他们
 
-
-## 字典
-- 键值对： 键是数据索引的扩展
-- 字典是键值对的集合，键值对之间无序
-- 采用大括号{}或dict()创建，键值对用冒号：表示
-
-### dict function or method
-| 函数或方法 | 描述 | 
-| :---: | :---: |
-| del d[ k ] | 删除字典d中键k对应的数据值 | 
-|  k in d | 判断键k是否在字典d中，存在返回True，否则返回False | 
-| d.keys() | 返回字典d中所有键的信息 | 
-| d.values() | 返回字典d中所有值的信息 | 
-| d.items() | 返回字典d中所有键值对的信息 | 
-
-### 列表类型操作函数和方法
-| 函数或方法 | 描述 | 
-| :---: | :---: |
-| d.get( k, <default>) | 键k存在，则返回相应值，不在则返回<default>值 | 
-| d.pop( k, <default>) | 键k存在，则取出相应值，不在则返回<default>值 | 
-| d.popitem() | 随机从字典d中取出一个键值对，以元组形式返回 | 
-| d.clear() | 删除所有的键值对 | 
-| len( d ) | 返回字典d中元素的个数 | 
 

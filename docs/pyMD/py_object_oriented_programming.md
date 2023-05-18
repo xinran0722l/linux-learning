@@ -1,4 +1,9 @@
-# 计算思维
+# 面向对象
+
+面向对象：将函数和数据整洁地封装起来，让开发者能够灵活而高效地使用
+
+
+## 计算思维
 - 逻辑思维：推理和演绎，数学为代表 A -> B B -> C A -> C
 - 实证思维：实验和验证，物理为代表，引力波 <- 实验
 - 计算思维：设计和构造，计算机为代表，汉诺塔递归
@@ -10,7 +15,152 @@
 
 ## class
 
-#### 构造方法
+现在编写一个表示汽车的类，他存储了有关汽车的信息，还有一个汇总这些信息的方法
+
+```py
+class Car():
+    """一次模拟汽车的简单尝试"""
+
+    def __init__(self, make, model,year):
+        """初始化描述汽车的属性"""
+        self.make = make
+        self.model = model
+        self.year = year
+
+    def get_descriptive_name(self):
+        """返回整洁的描述性信息"""
+        long_name = str(self.year) + " " + self.make + " " + self.model
+        return long_name.title()
+
+my_new_car = Car('audi','a4',2060)
+print(my_new_car)
+print(my_new_car.get_descriptive_name())
+# <__main__.Car object at 0x7f51022e8390>
+# 2060 Audi A4
+```
+
+为了让这个类更有趣，现在给他添加一个随时间变化的属性`slef.odometer_reading`，他存储汽车的总里程，其初始值为 0,同时添加一个名为 `self.read_odometer()`的方法，用于读取汽车的里程表
+
+```py
+class Car():
+    """一次模拟汽车的简单尝试"""
+
+    def __init__(self, make, model,year):
+        """初始化描述汽车的属性"""
+        self.make = make
+        self.model = model
+        self.year = year
+        self.odometer_reading = 0
+
+    def get_descriptive_name(self):
+        """返回整洁的描述性信息"""
+        long_name = str(self.year) + " " + self.make + " " + self.model
+        return long_name.title()
+
+    def read_odometer(self):
+        """打印一条指出汽车总里程的消息"""
+        print("This car has " + str(self.odometer_reading) + " miles on it.")
+
+my_new_car = Car('audi','a4',2060)
+print(my_new_car.get_descriptive_name())
+my_new_car.read_odometer()
+# 2060 Audi A4
+# This car has 0 miles on it.
+```
+
+里程表读数不变的汽车不多，因此我们需要一个修改该属性的值的途径
+
+- 可以通过 3 种方式修改属性的值
+    1. 直接修改属性的值 `my_new_car.odometer_reading = 2233`
+    2. 通过方法修改属性的值 `my_new_car.update_odometer(2233)`
+    3. 通过方法对属性的值递增 `my_new_car.increment_odometer(100)`
+
+```py
+class Car():
+    """一次模拟汽车的简单尝试"""
+
+    def __init__(self, make, model,year):
+        """初始化描述汽车的属性"""
+        self.make = make
+        self.model = model
+        self.year = year
+        self.odometer_reading = 0
+
+    def get_descriptive_name(self):
+        """返回整洁的描述性信息"""
+        long_name = str(self.year) + " " + self.make + " " + self.model
+        return long_name.title()
+
+    def read_odometer(self):
+        """打印一条指出汽车总里程的消息"""
+        print("This car has " + str(self.odometer_reading) + " miles on it.")
+
+    def update_odometer(self, mileage):
+        """将里程表读数设置为指定的值"""
+        if mileage >= self.odometer_reading: #里程数不能小于当前值
+            self.odometer_reading = mileage
+        else:
+            print("You can't roll back an odometer!!")
+
+    def increment_odometer(self, miles):
+        """将里程表读数增加指定的量"""
+        self.odometer_reading = miles
+```
+
+### 导入类
+
+首先创建一个只包含 Car 类的模块，命名为 car.py
+
+```py
+"""一个可用于表示汽车的类"""
+class Car():
+    """一次模拟汽车的简单尝试"""
+
+    def __init__(self, make, model,year):
+        """初始化描述汽车的属性"""
+        self.make = make
+        self.model = model
+        self.year = year
+        self.odometer_reading = 0
+
+    def get_descriptive_name(self):
+        """返回整洁的描述性信息"""
+        long_name = str(self.year) + " " + self.make + " " + self.model
+        return long_name.title()
+
+    def read_odometer(self):
+        """打印一条指出汽车总里程的消息"""
+        print("This car has " + str(self.odometer_reading) + " miles on it.")
+
+    def update_odometer(self, mileage):
+        """将里程表读数设置为指定的值"""
+        if mileage >= self.odometer_reading: #里程数不能小于当前值
+            self.odometer_reading = mileage
+        else:
+            print("You can't roll back an odometer!!")
+
+    def increment_odometer(self, miles):
+        """将里程表读数增加指定的量"""
+        self.odometer_reading = miles
+```
+
+在另一个 my_car.py 的文件中导入 Car 类并创建实例
+
+```py
+> cat my_car.py
+from car import Car
+
+my_new_car = Car('audi','a4',2060)
+print(my_new_car.get_descriptive_name()) #2060 Audi A4
+
+my_new_car.odometer_reading = 23
+my_new_car.read_odometer() # This car has 23 miles on it.
+```
+
+> 导入类是一种有效的编程方式。如果在这个程序中包含整个 Car 类，它会很长！铜鼓导入，使得主程序文件变得整洁而易于阅读。这能让人将大部分逻辑存储在独立的文件中;确定类像你希望的那样工作后，就可以不管这些文件，而专注于主程序的逻辑了
+
+
+### 构造方法
 
 - Python类中可以使用```__init__()```方法(构造方法)
     * 在创建类对象(构造类)的时候，会自动执行
@@ -35,7 +185,7 @@ class Student:
 s1 = Student("alex",22,"123321")
 #Student Class 创建了一个类对象
 ```
-#### 魔术方法
+### 魔术方法
 
 ```python
 class Student:
