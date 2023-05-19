@@ -105,6 +105,9 @@ grep [options] [pattern] file
 | 范围区间 | 10，20 十到二十行，10，+5第10行向下5行 /pattern1/,/pattern2/ |
 | 步长 | 1\~2,表示1，3，5，7，9行，2~2两个步长，表示2，4，6，8偶数行 |
 
+#### grep案例
+https://www.cnblogs.com/huquchangzhen/p/16140940.html 
+
 #### sed案例
 - sed_text.txt内容如下
 ```bash
