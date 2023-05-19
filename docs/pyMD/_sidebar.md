@@ -34,3 +34,5 @@
 - Excel
     - [pythonExcel](/pyMD/python_excel.md)
 
+- 小项目
+    - [外星人入侵](/pyMD/py_et.md) 

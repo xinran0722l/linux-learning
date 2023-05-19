@@ -201,3 +201,225 @@ OK
 ```
 
 可以看到，两个测试都通过了
+
+## 测试类
+
+Python 在 `unittest.TestCase` 类中提供了很多断言方法。`断言方法检查我们认为应该满足的条件是否确实满足`。下面是 6 个常用的断言方法。(只能在`继承unittest.TestCase`中使用这些方法)
+
+| 方法   | 用途    |
+|:---------------: | :---------------: |
+|  assertEqual(a,b)  |  a == b |
+|  assertNotEqual(a,b)  |  a != b |
+|  assertTrue(x)  |  x is True?  |
+|  assertFalse(x)  |  x is False?  |
+|  assertIn(item,list)  |  item in list?  |
+|  assertNotIn(item,list)  |  item not in list?  |
+
+
+### 一个要测试的类
+
+类的测试与函数的测试类似。我们要做的大部分工作都是测试类中方法的行为，但存在一些不同之处
+
+首先编写一个需要测试的类。这是一个帮助管理匿名调查的类
+
+```py
+> cat survey.py
+class AnonymousSurvey():
+    """收集匿名调查问卷的答案"""
+
+    def __init__(self, question):
+        """存储一个问题，并为存储答案做准备"""
+        self.question = question
+        self.responses = []
+
+    def show_question(self):
+        """显示调查问卷"""
+        print(self.question)
+
+    def store_response(self,new_response):
+        """存储单份调查答卷"""
+        self.responses.append(new_response)
+
+    def show_results(self):
+        """显示收集到的所有答卷"""
+        print("Survey results:")
+        for response in self.responses:
+            print('- ' + response)
+```
+
+为了证明 `AnonymousSurvey` 类能正确工作，我们需要编写一个测试程序
+
+```py
+> cat language_survey.py
+from survey import AnonymousSurvey
+
+#定义一个问题，并创建一个表示调查的 AnonymousSurvey 对象
+question = "What language did you first learn to speak?"
+my_survey = AnonymousSurvey(question)
+
+#显示问题并存储答案
+my_survey.show_question()
+print("Enter 'q' at any time to quit.\n")
+while True:
+    response = input("Language :  ")
+    if response == 'q':
+        break
+    my_survey.store_response(response)
+
+#显示调查结果
+print("\nThank you to everyone who participated in the survey!")
+my_survey.show_results()
+
+> python language_survey.py
+# What language did you first learn to speak?
+# Enter 'q' at any time to quit.
+# 
+# Language :  English
+# Language :  Spanish
+# Language :  English
+# Language :  Mandarin
+# Language :  q
+# 
+# Thank you to everyone who participated in the survey!
+# Survey results:
+# - English
+# - Spanish
+# - English
+# - Mandarin
+```
+
+AnonymousSurvey 类可用于简单的匿名调查。假设我们将其放在了模块 survey 中，并想进行更改：让美味用户都可输入多个答案。编写一个方法，它只列出不同的答案，并指出每个答案出现了多少次，再编写一个类，用于管理非匿名调查
+
+#### 测试 AnonymousSurvey 类
+
+现在编写一个测试，对 AnonymousSurvey 类的行为的一个方面进行验证：*如果用户面对调查问题时只提供了一个答案，这个答案也能被妥善存储* 。为此，我们将在这个答案被存储后，使用方法 assertIn() 来核实它包含在答案列表中
+
+```py
+> cat test_survey.py
+import unittest
+from survey import AnonymousSurvey
+
+class TestAnonymousSurvey(unittest.TestCase):
+    """针对AnonymousSurvey类的测试"""
+
+    def test_store_single_response(self):
+        """测试单个答案会被妥善存储"""
+        question = "What language did you first learn to speak?"
+        my_survey = AnonymousSurvey(question)
+        my_survey.store_response("English")
+
+        self.assertIn("English",my_survey.responses)
+
+unittest.main()
+> python test_survey.py
+# .
+# ----------------------------------------------------------------------
+# Ran 1 test in 0.000s
+# 
+# OK
+```
+
+测试通过！现在来核实用户提供三个答案时，他们也将被妥善地存储。为此，我们在 TestAnonymousSurvey 类中再添加一个方法
+
+```py
+> cat test_survey.py
+import unittest
+from survey import AnonymousSurvey
+
+class TestAnonymousSurvey(unittest.TestCase):
+    """针对AnonymousSurvey类的测试"""
+
+    def test_store_single_response(self):
+        """测试单个答案会被妥善存储"""
+        question = "What language did you first learn to speak?"
+        my_survey = AnonymousSurvey(question)
+        my_survey.store_response("English")
+
+        self.assertIn("English",my_survey.responses)
+
+    def test_store_three_responses(self):
+        """测试三个答案会被妥善地存储"""
+        question = "What language did you first learn to speak?"
+        my_survey = AnonymousSurvey(question)
+        responses = ['English','Spanish','Mandarin']
+
+        for response in responses:
+            my_survey.store_response(response)
+
+        for response in responses:
+            self.assertIn(response,my_survey.responses)
+
+unittest.main()
+```
+
+我们将这个方法命名为`test_store_three_responses()`，并像`test_store_single_response()`一样，在其中创建一个调查对象。
+
+现在再次运行 test_survey.py
+
+```py
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.000s
+
+OK
+```
+
+两个测试都通过了，现在的做法效果很好，但这些测试有些重复的地方。下面使用 unittest 的另一项功能来提供他们的效率
+
+### 方法 setUp()
+
+前面的 test_survey.py 中，需要在每个测试方法中都创建一个 AnonymousSurvey 实例，并在每个方法中都创建了答案。
+
+`unittest.TestCase`类包含方法`setUp()`，让我们只需创建这些对象一次，并在每个测试方法中使用他们。
+
+下面使用 setUp() 来创建一个调查对象和一组答案
+
+```py
+import unittest
+from survey import AnonymousSurvey
+
+class TestAnonymousSurvey(unittest.TestCase):
+    """针对AnonymousSurvey类的测试"""
+
+    def setUp(self):
+        """创建一个调查对象和一组答案，供使用的测试方法使用"""
+        question = "What language did you first learn to speak?"
+        self.my_survey = AnonymousSurvey(question)
+        self.responses = ["English","Spanish","Mandarin"]
+
+
+    def test_store_single_response(self):
+        """测试单个答案会被妥善存储"""
+        self.my_survey.store_response(self.responses[0])
+        self.assertIn(self.responses[0],self.my_survey.responses)
+
+
+    def test_store_three_responses(self):
+        """测试三个答案会被妥善地存储"""
+
+        for response in self.responses:
+            self.my_survey.store_response(response)
+
+        for response in self.responses:
+            self.assertIn(response,self.my_survey.responses)
+
+unittest.main()
+```
+
+方法`setUp()`做两件事：
+
+1. 创建一个调查对象
+2. 创建一个答案列表
+
+存储这两样东西的变量名包含前缀 self(即存储在属性中),因此可在这个类的任何地方使用
+
+再次运行 test_survey.py 后，这两个测试也通过了
+
+```py
+> python test_survey.py
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.000s
+
+OK
+```
